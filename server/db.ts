@@ -1,3 +1,22 @@
+/**
+ * @fileoverview Database Access Layer for Cockpit Vibe
+ * 
+ * This module provides all database operations for the application including:
+ * - User management (authentication, roles)
+ * - Database connection management (multi-tenant support)
+ * - Team, Agent, Workspace, Process, and Schedule CRUD operations
+ * - Global statistics aggregation
+ * 
+ * **Security Features:**
+ * - Password encryption using AES-256-CBC
+ * - Role-based access control (admin/user)
+ * - Connection status tracking and logging
+ * 
+ * @module server/db
+ * @author Cockpit Vibe Team
+ * @version 1.0.0
+ */
+
 import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, databaseConnections, connectionLogs, InsertDatabaseConnection, InsertConnectionLog } from "../drizzle/schema";
