@@ -1,7 +1,7 @@
 import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
 import KPICard from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
-import { TeamAgentsPreview } from "@/components/TeamAgentsDisplay";
+import { TeamPortrait } from "@/components/TeamPortrait";
 import { trpc } from "@/lib/trpc";
 import { Zap, Clock, TrendingUp, ChevronRight, Users } from "lucide-react";
 import { useLocation } from "wouter";
@@ -76,12 +76,12 @@ export default function Agents() {
                     onClick={() => setLocation(`/agent/${agent.id}`)}
                     className="flex items-center gap-5 p-4 rounded-2xl bg-[oklch(0.16_0.02_45/50%)] hover:bg-[oklch(0.20_0.03_45/60%)] border border-[oklch(0.55_0.15_45/15%)] transition-all group text-left"
                   >
-                    {/* Team Agents Preview - Multiple Silhouettes */}
-                    <div className="shrink-0 w-20">
-                      <TeamAgentsPreview 
+                    {/* Team Portrait */}
+                    <div className="shrink-0">
+                      <TeamPortrait 
+                        color={agent.avatarColor || '#f97316'}
                         agentCount={agent.agentCount || 1}
-                        utilization={utilization}
-                        size="sm"
+                        size="md"
                       />
                     </div>
                     

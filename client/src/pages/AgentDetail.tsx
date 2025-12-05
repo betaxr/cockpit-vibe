@@ -2,8 +2,7 @@ import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
 import KPICard from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
 import { FullBodyAgent, ProcessSegment } from "@/components/FullBodyAgent";
-import { HoverLegend } from "@/components/HoverLegend";
-import { TeamAgentsDisplay } from "@/components/TeamAgentsDisplay";
+import { ProcessLegend } from "@/components/ProcessLegend";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Monitor, ChevronLeft, ChevronRight, Zap, TrendingUp } from "lucide-react";
 import { useLocation, useParams } from "wouter";
@@ -170,7 +169,7 @@ export default function AgentDetail() {
   const { data: processes = [] } = trpc.agents.processes.useQuery({ agentId }, { enabled: agentId > 0 });
 
   // Calculate agent stats and process segments for silhouette
-  const { agentStats, processSegments, agentCount } = useMemo(() => {
+  const { agentStats, processSegments } = useMemo(() => {
     const completedProcesses = processes.filter(p => p.status === 'completed');
     const totalValue = completedProcesses.reduce((sum, p) => sum + (p.valueGenerated || 0), 0) / 100;
     const totalTimeSaved = completedProcesses.reduce((sum, p) => sum + (p.timeSavedMinutes || 0), 0) / 60;
@@ -222,7 +221,6 @@ export default function AgentDetail() {
         utilization: agent?.status === 'active' || agent?.status === 'busy' ? 98 : 0,
       },
       processSegments: segments,
-      agentCount: agent?.agentCount || 1,
     };
   }, [processes, agent]);
 
@@ -253,13 +251,6 @@ export default function AgentDetail() {
       </DashboardLayout>
     );
   }
-
-  // Create agent data for TeamAgentsDisplay
-  const agentsData = Array.from({ length: agentCount }, (_, i) => ({
-    id: i,
-    utilization: 85 + (Math.random() * 10 - 5),
-    segments: processSegments,
-  }));
 
   return (
     <DashboardLayout>
@@ -315,27 +306,30 @@ export default function AgentDetail() {
 
         {/* Main Content - 3 Column Layout */}
         <div className="grid grid-cols-12 gap-6">
-          {/* Agent Profile Card with Silhouettes - Hover for Legend */}
+          {/* Agent Profile Card with Silhouette and Legend */}
           <ModuleCard className="col-span-4" isEditable={isEditMode}>
             <div className="flex gap-6">
-              {/* Silhouettes with Hover Legend - Multiple agents shown */}
-              <HoverLegend className="shrink-0">
-                <TeamAgentsDisplay
-                  teamName={agent.name || "Team"}
-                  agents={agentsData}
+              {/* Silhouette - Multi-color based on process status */}
+              <div className="shrink-0">
+                <FullBodyAgent 
+                  segments={processSegments}
                   size="lg"
+                  showHead={true}
                 />
-              </HoverLegend>
+              </div>
               
-              {/* Info */}
+              {/* Info + Legend */}
               <div className="flex-1 space-y-5 py-2">
                 <div>
-                  <h2 className="text-xl font-semibold text-white">{agent.team?.name || agent.name || "Team Sales"}</h2>
+                  <h2 className="text-xl font-semibold text-white">{agent.team?.name || "Team Sales"}</h2>
                   <p className="text-xs text-white/40 mt-1 font-mono">Team-ID: {agent.team?.teamId || agent.agentId}</p>
                 </div>
                 
+                {/* Process Legend */}
+                <ProcessLegend compact className="mt-4" />
+                
                 <div className="space-y-1 pt-2">
-                  <p className="text-[oklch(0.7_0.18_50)] text-sm font-medium">{agentCount} {agentCount === 1 ? 'Agent' : 'Agenten'} /</p>
+                  <p className="text-[oklch(0.7_0.18_50)] text-sm font-medium">1 Agent /</p>
                   <p className="text-[oklch(0.7_0.18_50)] text-sm font-medium">{agent.hoursPerDay} Stunden pro Tag</p>
                 </div>
                 
