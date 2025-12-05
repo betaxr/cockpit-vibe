@@ -8,8 +8,10 @@ import DashboardLayout from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Connections from "./pages/Connections";
 import ModularDashboard from "./pages/ModularDashboard";
+import Login from "./pages/Login";
+import { useAuth } from "./_core/hooks/useAuth";
 
-function Router() {
+function AuthenticatedRouter() {
   return (
     <DashboardLayout>
       <Switch>
@@ -23,17 +25,35 @@ function Router() {
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
+function Router() {
+  const { isAuthenticated, loading } = useAuth();
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[oklch(0.55_0.15_45)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <Switch>
+      <Route path="/login" component={Login} />
+      {isAuthenticated ? (
+        <AuthenticatedRouter />
+      ) : (
+        <Route component={Login} />
+      )}
+    </Switch>
+  );
+}
 
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
         defaultTheme="dark"
-        // switchable
       >
         <TooltipProvider>
           <Toaster />

@@ -1,9 +1,11 @@
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { upsertUser, getUserByOpenId } from "./db";
+import { sdk } from "./_core/sdk";
 import {
   createDatabaseConnection,
   updateDatabaseConnection,
@@ -27,6 +29,47 @@ export const appRouter = router({
       return {
         success: true,
       } as const;
+    }),
+    // Test login with admin/admin credentials
+    testLogin: publicProcedure.input(z.object({
+      username: z.string(),
+      password: z.string(),
+    })).mutation(async ({ input, ctx }) => {
+      // Check for test credentials
+      if (input.username === 'admin' && input.password === 'admin') {
+        // Create or get test admin user
+        const testOpenId = 'test-admin-user';
+        
+        // Upsert the test admin user
+        await upsertUser({
+          openId: testOpenId,
+          name: 'Test Admin',
+          email: 'admin@test.local',
+          loginMethod: 'test',
+          role: 'admin',
+          lastSignedIn: new Date(),
+        });
+
+        // Get the user to create session
+        const user = await getUserByOpenId(testOpenId);
+        if (!user) {
+          return { success: false, message: 'User creation failed' };
+        }
+
+        // Create session token using SDK
+        const token = await sdk.createSessionToken(user.openId, {
+          name: user.name || 'Test Admin',
+          expiresInMs: ONE_YEAR_MS,
+        });
+
+        // Set session cookie
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, token, cookieOptions);
+
+        return { success: true, message: 'Login successful' };
+      }
+
+      return { success: false, message: 'Invalid credentials' };
     }),
   }),
 

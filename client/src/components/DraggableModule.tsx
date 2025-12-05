@@ -11,6 +11,14 @@ interface Size {
   height: number;
 }
 
+// Grid configuration
+const GRID_SIZE = 20; // 20px grid
+const SNAP_THRESHOLD = 10; // Snap when within 10px of grid line
+
+const snapToGrid = (value: number): number => {
+  return Math.round(value / GRID_SIZE) * GRID_SIZE;
+};
+
 interface DraggableModuleProps {
   id: string;
   title: string;
@@ -22,6 +30,7 @@ interface DraggableModuleProps {
   onPositionChange?: (id: string, position: Position) => void;
   onSizeChange?: (id: string, size: Size) => void;
   className?: string;
+  snapToGrid?: boolean;
 }
 
 export default function DraggableModule({
@@ -35,6 +44,7 @@ export default function DraggableModule({
   onPositionChange,
   onSizeChange,
   className = "",
+  snapToGrid: enableSnap = true,
 }: DraggableModuleProps) {
   const [position, setPosition] = useState<Position>(defaultPosition);
   const [size, setSize] = useState<Size>(defaultSize);
@@ -104,17 +114,36 @@ export default function DraggableModule({
       if (isDragging) {
         const deltaX = e.clientX - dragStartRef.current.x;
         const deltaY = e.clientY - dragStartRef.current.y;
-        setPosition({
-          x: dragStartRef.current.posX + deltaX,
-          y: dragStartRef.current.posY + deltaY,
-        });
+        let newX = dragStartRef.current.posX + deltaX;
+        let newY = dragStartRef.current.posY + deltaY;
+        
+        // Snap to grid if enabled
+        if (enableSnap) {
+          newX = snapToGrid(newX);
+          newY = snapToGrid(newY);
+        }
+        
+        // Ensure position is not negative
+        newX = Math.max(0, newX);
+        newY = Math.max(0, newY);
+        
+        setPosition({ x: newX, y: newY });
       }
       if (isResizing) {
         const deltaX = e.clientX - resizeStartRef.current.x;
         const deltaY = e.clientY - resizeStartRef.current.y;
+        let newWidth = resizeStartRef.current.width + deltaX;
+        let newHeight = resizeStartRef.current.height + deltaY;
+        
+        // Snap to grid if enabled
+        if (enableSnap) {
+          newWidth = snapToGrid(newWidth);
+          newHeight = snapToGrid(newHeight);
+        }
+        
         setSize({
-          width: Math.max(minWidth, resizeStartRef.current.width + deltaX),
-          height: Math.max(minHeight, resizeStartRef.current.height + deltaY),
+          width: Math.max(minWidth, newWidth),
+          height: Math.max(minHeight, newHeight),
         });
       }
     };
@@ -135,41 +164,82 @@ export default function DraggableModule({
       document.removeEventListener("mouseup", handleMouseUp);
       document.body.style.userSelect = "";
     };
-  }, [isDragging, isResizing, minWidth, minHeight]);
+  }, [isDragging, isResizing, minWidth, minHeight, enableSnap]);
 
   return (
     <div
       ref={moduleRef}
-      className={`glass-module absolute ${isDragging ? "dragging" : ""} ${className}`}
+      className={`
+        absolute
+        bg-gradient-to-br from-[oklch(0.18_0.03_50/70%)] to-[oklch(0.12_0.02_50/60%)]
+        backdrop-blur-xl
+        border-2 border-[oklch(0.55_0.15_45/40%)]
+        rounded-xl
+        transition-shadow duration-300
+        ${isDragging ? "shadow-[0_12px_50px_oklch(0.5_0.15_45/25%)] border-[oklch(0.7_0.18_50/60%)]" : ""}
+        ${className}
+      `}
       style={{
         left: position.x,
         top: position.y,
         width: size.width,
         height: size.height,
         zIndex: isDragging ? 100 : 10,
+        transform: isDragging ? "scale(1.01)" : "scale(1)",
       }}
     >
+      {/* Subtle inner glow */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.35_0.1_45/8%)] to-transparent pointer-events-none rounded-xl" />
+      
       {/* Header with drag handle */}
-      <div className="module-header flex items-center justify-between">
+      <div 
+        className="relative z-10 px-4 py-3 border-b border-[oklch(0.5_0.12_45/25%)] flex items-center justify-between rounded-t-xl bg-[oklch(0.2_0.035_50/50%)]"
+      >
         <div
-          className="drag-handle flex items-center gap-2"
+          className="flex items-center gap-2 cursor-grab active:cursor-grabbing flex-1"
           onMouseDown={handleDragStart}
         >
-          <GripVertical className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-foreground">{title}</span>
+          <GripVertical className="w-4 h-4 opacity-30" strokeWidth={1.5} />
+          <span className="text-sm font-medium text-white/80">{title}</span>
         </div>
+        {/* Grid indicator */}
+        {enableSnap && (
+          <div className="text-[10px] text-white/30 font-mono">
+            {Math.round(position.x / GRID_SIZE)},{Math.round(position.y / GRID_SIZE)}
+          </div>
+        )}
       </div>
 
       {/* Content */}
-      <div className="p-4 overflow-auto" style={{ height: `calc(100% - 48px)` }}>
+      <div className="relative z-10 p-4 overflow-auto text-white/80" style={{ height: `calc(100% - 48px)` }}>
         {children}
       </div>
 
       {/* Resize handle */}
       <div
-        className="resize-handle"
+        className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize opacity-0 hover:opacity-100 transition-opacity"
         onMouseDown={handleResizeStart}
-      />
+      >
+        <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-[oklch(0.6_0.15_45/60%)] rounded-br" />
+      </div>
     </div>
+  );
+}
+
+// Grid background component for visual reference
+export function GridBackground({ show = true }: { show?: boolean }) {
+  if (!show) return null;
+  
+  return (
+    <div 
+      className="absolute inset-0 pointer-events-none opacity-10"
+      style={{
+        backgroundImage: `
+          linear-gradient(to right, oklch(0.5 0.12 45 / 20%) 1px, transparent 1px),
+          linear-gradient(to bottom, oklch(0.5 0.12 45 / 20%) 1px, transparent 1px)
+        `,
+        backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+      }}
+    />
   );
 }

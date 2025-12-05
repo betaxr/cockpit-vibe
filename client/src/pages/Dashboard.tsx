@@ -1,9 +1,10 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Database, CheckCircle2, XCircle, AlertCircle, Activity } from "lucide-react";
+import { Database, CheckCircle2, XCircle, AlertCircle, Activity, Zap } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import KPICard, { MultiKPICard } from "@/components/KPICard";
+import ModuleCard from "@/components/ModuleCard";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -22,20 +23,17 @@ export default function Dashboard() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Willkommen, {user?.name}</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-white">Willkommen, {user?.name}</h1>
+          <p className="text-white/60">
             Sie sind als normaler Benutzer angemeldet.
           </p>
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Eingeschränkter Zugriff</CardTitle>
-            <CardDescription>
-              Die Verwaltung von Datenbankverbindungen erfordert Admin-Rechte.
-              Kontaktieren Sie einen Administrator, um Zugriff zu erhalten.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <ModuleCard title="Eingeschränkter Zugriff" icon={AlertCircle}>
+          <p className="text-white/60">
+            Die Verwaltung von Datenbankverbindungen erfordert Admin-Rechte.
+            Kontaktieren Sie einen Administrator, um Zugriff zu erhalten.
+          </p>
+        </ModuleCard>
       </div>
     );
   }
@@ -43,113 +41,93 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard</h1>
+        <p className="text-white/60">
           Übersicht über Ihre Datenbankverbindungen
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Gesamt</CardTitle>
-            <Database className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">
-              Datenbankverbindungen
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aktiv</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-            <p className="text-xs text-muted-foreground">
-              Verbindungen online
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fehler</CardTitle>
-            <XCircle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.error}</div>
-            <p className="text-xs text-muted-foreground">
-              Verbindungen fehlerhaft
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unbekannt</CardTitle>
-            <AlertCircle className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-600">{stats.unknown}</div>
-            <p className="text-xs text-muted-foreground">
-              Status unbekannt
-            </p>
-          </CardContent>
-        </Card>
+      {/* KPI Cards Row - Style from reference image */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <KPICard
+          value={stats.total}
+          label="Datenbankverbindungen"
+          icon={Database}
+        />
+        <MultiKPICard
+          items={[
+            { value: stats.active, label: "Aktiv", unit: "" },
+            { value: stats.error, label: "Fehler", unit: "" },
+          ]}
+        />
+        <KPICard
+          value={stats.unknown}
+          label="Status unbekannt"
+          icon={AlertCircle}
+        />
+        <KPICard
+          value={stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}
+          unit="%"
+          label="Verfügbarkeit"
+          icon={Zap}
+        />
       </div>
 
+      {/* Content Modules */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Schnellzugriff
-            </CardTitle>
-            <CardDescription>
-              Häufig verwendete Aktionen
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
+        <ModuleCard title="Schnellzugriff" icon={Activity}>
+          <div className="space-y-2">
             <Link href="/connections">
-              <Button variant="outline" className="w-full justify-start">
-                <Database className="mr-2 h-4 w-4" />
+              <Button 
+                variant="outline" 
+                className="w-full justify-start bg-transparent border-[oklch(0.5_0.12_45/30%)] hover:bg-[oklch(0.5_0.12_45/15%)] hover:border-[oklch(0.55_0.14_45/50%)] text-white/80"
+              >
+                <Database className="mr-2 h-4 w-4 opacity-50" />
                 Verbindungen verwalten
               </Button>
             </Link>
-          </CardContent>
-        </Card>
+            <Link href="/modular">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start bg-transparent border-[oklch(0.5_0.12_45/30%)] hover:bg-[oklch(0.5_0.12_45/15%)] hover:border-[oklch(0.55_0.14_45/50%)] text-white/80"
+              >
+                <Zap className="mr-2 h-4 w-4 opacity-50" />
+                Modulares Dashboard
+              </Button>
+            </Link>
+          </div>
+        </ModuleCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Letzte Verbindungen</CardTitle>
-            <CardDescription>
-              Kürzlich hinzugefügte Datenbankverbindungen
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {connections && connections.length > 0 ? (
-              <div className="space-y-3">
-                {connections.slice(0, 5).map((conn) => (
-                  <div key={conn.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Database className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">{conn.name}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {conn.dbType}
-                    </span>
+        <ModuleCard title="Letzte Verbindungen" icon={Database}>
+          {connections && connections.length > 0 ? (
+            <div className="space-y-3">
+              {connections.slice(0, 5).map((conn) => (
+                <div 
+                  key={conn.id} 
+                  className="flex items-center justify-between p-2 rounded-lg bg-[oklch(0.2_0.03_50/30%)] border border-[oklch(0.5_0.12_45/20%)]"
+                >
+                  <div className="flex items-center gap-2">
+                    {conn.status === "active" ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-500/70" />
+                    ) : conn.status === "error" ? (
+                      <XCircle className="h-4 w-4 text-red-500/70" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-white/40" />
+                    )}
+                    <span className="text-sm font-medium text-white/80">{conn.name}</span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Noch keine Verbindungen vorhanden.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                  <span className="text-xs text-white/50 bg-[oklch(0.3_0.04_50/40%)] px-2 py-0.5 rounded">
+                    {conn.dbType}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-white/50">
+              Noch keine Verbindungen vorhanden.
+            </p>
+          )}
+        </ModuleCard>
       </div>
     </div>
   );

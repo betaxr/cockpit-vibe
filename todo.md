@@ -29,3 +29,10 @@
 - [x] Resizable module panels
 - [x] Module position persistence
 - [x] Extended unit tests for new features (19 tests passing)
+
+## Design Update - KPI Cards & Grid System
+- [x] KPI cards with large numbers, rounded orange borders, dark background
+- [x] Minimalistic icons with reduced opacity
+- [x] Grid-based layout system for modular dashboard (20px snap grid)
+- [x] Test login with admin/admin credentials
+- [x] Unit tests for login functionality (26 tests total, all passing)
