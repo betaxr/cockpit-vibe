@@ -17,7 +17,8 @@ export default function Cortex() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      {/* MaxWidth Container with Apple HIG spacing */}
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

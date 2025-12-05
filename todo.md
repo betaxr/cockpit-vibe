@@ -145,3 +145,33 @@
 
 ### Testing
 - [x] 21 unit tests passing
+
+## UI Refinement - Apple HIG Design
+
+### SVG Components
+- [x] Agent Portrait SVG component
+- [x] Team Portrait SVG component (multiple agents)
+- [x] Full-body Agent Silhouette SVG (24h visualization)
+
+### Team-Based Data
+- [x] Replace agent names with team names (Marketing, Production, etc.)
+- [x] Teams have 1-5 agents
+- [x] Update seed data with team-centric approach
+
+### KPI Bundling
+- [x] Combine Wertschöpfung + Zeitersparnis into one KPI element
+- [x] Show value creation with corresponding time savings
+
+### Layout & Design
+- [x] Add MaxWidth constraint for entire page (max-w-5xl)
+- [x] Apply Apple HIG principles (minimalist, clean)
+- [x] More whitespace and clearer hierarchy
+- [x] Consistent spacing system
+
+### Edit Mode
+- [x] Show grips/handles on all modules when edit mode is active
+- [x] Edit mode applies to all subpages
+- [x] Visual feedback for draggable state
+
+### Testing
+- [x] 21 unit tests passing

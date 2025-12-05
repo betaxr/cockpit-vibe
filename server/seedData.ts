@@ -3,106 +3,130 @@
  * 
  * This file contains realistic mock data representing a pharmacy chain
  * with multiple teams, agents, processes, and workspaces.
+ * 
+ * Teams are the primary organizational unit - agents are identified by team name.
  */
 
-// Teams - Organizational units
+// Teams - Organizational units (each team has 1-5 agents)
 export const seedTeams = [
   {
-    name: "Team Verkauf",
+    name: "Marketing",
+    teamId: "TEAM-MKT-001",
+    region: "DACH",
+    customerType: "B2B, Partner",
+    project: "Social Media & Kampagnen",
+    agentCount: 3,
+    color: "#eab308",
+  },
+  {
+    name: "Verkauf",
     teamId: "TEAM-SALES-001",
     region: "Deutschland Süd",
     customerType: "B2C, Endkunden",
     project: "Kundenberatung & Verkauf",
+    agentCount: 2,
+    color: "#f97316",
   },
   {
-    name: "Team Marketing",
-    teamId: "TEAM-MKT-002",
-    region: "DACH",
-    customerType: "B2B, Partner",
-    project: "Social Media & Kampagnen",
-  },
-  {
-    name: "Team Logistik",
-    teamId: "TEAM-LOG-003",
+    name: "Logistik",
+    teamId: "TEAM-LOG-001",
     region: "Deutschland",
     customerType: "Intern",
     project: "Wareneingang & Versand",
+    agentCount: 4,
+    color: "#22c55e",
   },
   {
-    name: "Team Support",
-    teamId: "TEAM-SUP-004",
+    name: "Support",
+    teamId: "TEAM-SUP-001",
     region: "Europa",
     customerType: "B2C, Reklamationen",
     project: "Kundenservice & Retouren",
+    agentCount: 2,
+    color: "#3b82f6",
+  },
+  {
+    name: "Production",
+    teamId: "TEAM-PROD-001",
+    region: "Deutschland",
+    customerType: "Intern",
+    project: "Herstellung & Qualität",
+    agentCount: 5,
+    color: "#ec4899",
   },
 ];
 
-// Agents - Digital workers assigned to teams
+// Agents - Now identified by team, not individual names
 export const seedAgents = [
   {
-    name: "Luna",
-    agentId: "AGT-001",
-    teamIndex: 0, // Team Verkauf
-    status: "active" as const,
-    hoursPerDay: 24,
-    avatarColor: "#f97316",
-    capabilities: ["Beratung", "Produktsuche", "Bestellungen"],
-  },
-  {
-    name: "Max",
-    agentId: "AGT-002",
-    teamIndex: 1, // Team Marketing
+    name: "Marketing", // Team name as identifier
+    agentId: "AGT-MKT-001",
+    teamIndex: 0,
     status: "active" as const,
     hoursPerDay: 24,
     avatarColor: "#eab308",
+    agentCount: 3, // 3 agents in this team
     capabilities: ["Social Media", "Content Creation", "Analytics"],
   },
   {
-    name: "Sophie",
-    agentId: "AGT-003",
-    teamIndex: 2, // Team Logistik
+    name: "Verkauf",
+    agentId: "AGT-SALES-001",
+    teamIndex: 1,
+    status: "active" as const,
+    hoursPerDay: 24,
+    avatarColor: "#f97316",
+    agentCount: 2,
+    capabilities: ["Beratung", "Produktsuche", "Bestellungen"],
+  },
+  {
+    name: "Logistik",
+    agentId: "AGT-LOG-001",
+    teamIndex: 2,
     status: "busy" as const,
     hoursPerDay: 24,
     avatarColor: "#22c55e",
+    agentCount: 4,
     capabilities: ["Inventur", "Versandvorbereitung", "Tracking"],
   },
   {
-    name: "Felix",
-    agentId: "AGT-004",
-    teamIndex: 3, // Team Support
+    name: "Support",
+    agentId: "AGT-SUP-001",
+    teamIndex: 3,
     status: "active" as const,
     hoursPerDay: 24,
     avatarColor: "#3b82f6",
+    agentCount: 2,
     capabilities: ["Ticketbearbeitung", "Retouren", "FAQ"],
   },
   {
-    name: "Emma",
-    agentId: "AGT-005",
-    teamIndex: 0, // Team Verkauf
+    name: "Production",
+    agentId: "AGT-PROD-001",
+    teamIndex: 4,
     status: "idle" as const,
     hoursPerDay: 12,
     avatarColor: "#ec4899",
-    capabilities: ["Nachtschicht", "Bestellungen", "Notfälle"],
+    agentCount: 5,
+    capabilities: ["Herstellung", "Qualitätskontrolle", "Dokumentation"],
   },
 ];
 
-// Workspaces - Physical/Virtual machines where agents work
+// Workspaces - Physical/Virtual machines where teams work
 export const seedWorkspaces = [
-  {
-    name: "Apotheken-Terminal 1",
-    workspaceId: "WS-APO-001",
-    type: "physical" as const,
-    status: "online" as const,
-    location: "Filiale München",
-    agentIndex: 0, // Luna
-  },
   {
     name: "Marketing-VM",
     workspaceId: "WS-MKT-001",
     type: "virtual" as const,
     status: "online" as const,
     location: "Cloud Azure",
-    agentIndex: 1, // Max
+    agentIndex: 0,
+  },
+  {
+    name: "Apotheken-Terminal 1",
+    workspaceId: "WS-APO-001",
+    type: "physical" as const,
+    status: "online" as const,
+    location: "Filiale München",
+    agentIndex: 1,
   },
   {
     name: "Lager-Terminal",
@@ -110,7 +134,7 @@ export const seedWorkspaces = [
     type: "physical" as const,
     status: "online" as const,
     location: "Zentrallager",
-    agentIndex: 2, // Sophie
+    agentIndex: 2,
   },
   {
     name: "Support-Workstation",
@@ -118,19 +142,19 @@ export const seedWorkspaces = [
     type: "virtual" as const,
     status: "online" as const,
     location: "Cloud AWS",
-    agentIndex: 3, // Felix
+    agentIndex: 3,
   },
   {
-    name: "Nacht-Terminal",
-    workspaceId: "WS-APO-002",
+    name: "Produktions-Terminal",
+    workspaceId: "WS-PROD-001",
     type: "physical" as const,
     status: "offline" as const,
-    location: "Filiale München",
-    agentIndex: 4, // Emma
+    location: "Werk Stuttgart",
+    agentIndex: 4,
   },
 ];
 
-// Processes - Automated tasks that agents execute
+// Processes - Automated tasks that teams execute
 export const seedProcesses = [
   {
     name: "Social Media Posting",
@@ -138,8 +162,8 @@ export const seedProcesses = [
     description: "Automatisches Posten auf Instagram, Facebook und LinkedIn",
     category: "Marketing",
     estimatedMinutes: 15,
-    valuePerRun: 2500, // in cents = 25€
-    agentIndex: 1, // Max
+    valuePerRun: 2500,
+    agentIndex: 0,
     scheduleCount: 156,
     successCount: 148,
     failCount: 8,
@@ -150,8 +174,8 @@ export const seedProcesses = [
     description: "Versand von Bestellbestätigungen per E-Mail",
     category: "Verkauf",
     estimatedMinutes: 5,
-    valuePerRun: 500, // 5€
-    agentIndex: 0, // Luna
+    valuePerRun: 500,
+    agentIndex: 1,
     scheduleCount: 1247,
     successCount: 1241,
     failCount: 6,
@@ -162,8 +186,8 @@ export const seedProcesses = [
     description: "Tägliche Bestandsprüfung und Nachbestellungen",
     category: "Logistik",
     estimatedMinutes: 45,
-    valuePerRun: 15000, // 150€
-    agentIndex: 2, // Sophie
+    valuePerRun: 15000,
+    agentIndex: 2,
     scheduleCount: 89,
     successCount: 87,
     failCount: 2,
@@ -174,8 +198,8 @@ export const seedProcesses = [
     description: "Automatische Kategorisierung und Priorisierung von Support-Tickets",
     category: "Support",
     estimatedMinutes: 10,
-    valuePerRun: 1000, // 10€
-    agentIndex: 3, // Felix
+    valuePerRun: 1000,
+    agentIndex: 3,
     scheduleCount: 523,
     successCount: 498,
     failCount: 25,
@@ -186,8 +210,8 @@ export const seedProcesses = [
     description: "Bearbeitung von Rücksendungen und Erstattungen",
     category: "Support",
     estimatedMinutes: 20,
-    valuePerRun: 3000, // 30€
-    agentIndex: 3, // Felix
+    valuePerRun: 3000,
+    agentIndex: 3,
     scheduleCount: 234,
     successCount: 229,
     failCount: 5,
@@ -198,8 +222,8 @@ export const seedProcesses = [
     description: "Wettbewerbsanalyse und Preisanpassungen",
     category: "Verkauf",
     estimatedMinutes: 30,
-    valuePerRun: 5000, // 50€
-    agentIndex: 0, // Luna
+    valuePerRun: 5000,
+    agentIndex: 1,
     scheduleCount: 62,
     successCount: 60,
     failCount: 2,
@@ -210,8 +234,8 @@ export const seedProcesses = [
     description: "Wöchentlicher Newsletter an Abonnenten",
     category: "Marketing",
     estimatedMinutes: 25,
-    valuePerRun: 8000, // 80€
-    agentIndex: 1, // Max
+    valuePerRun: 8000,
+    agentIndex: 0,
     scheduleCount: 48,
     successCount: 47,
     failCount: 1,
@@ -222,35 +246,35 @@ export const seedProcesses = [
     description: "Erstellung von Versandlabels und Packzettel",
     category: "Logistik",
     estimatedMinutes: 8,
-    valuePerRun: 200, // 2€
-    agentIndex: 2, // Sophie
+    valuePerRun: 200,
+    agentIndex: 2,
     scheduleCount: 2156,
     successCount: 2134,
     failCount: 22,
   },
 ];
 
-// Schedule entries - What agents do throughout the day
+// Schedule entries - What teams do throughout the day
 export const seedScheduleEntries = [
-  // Luna (Agent 0) - Verkauf
-  { agentIndex: 0, title: "Bestellbestätigung", startHour: 0, endHour: 1, color: "#c2410c", processIndex: 1 },
-  { agentIndex: 0, title: "Bestellbestätigung", startHour: 3, endHour: 4, color: "#c2410c", processIndex: 1 },
-  { agentIndex: 0, title: "Preisvergleich", startHour: 6, endHour: 7, color: "#a16207", processIndex: 5 },
-  { agentIndex: 0, title: "Bestellbestätigung", startHour: 9, endHour: 10, color: "#c2410c", processIndex: 1 },
-  { agentIndex: 0, title: "Kundenberatung", startHour: 10, endHour: 12, color: "#78716c" },
-  { agentIndex: 0, title: "Bestellbestätigung", startHour: 14, endHour: 15, color: "#c2410c", processIndex: 1 },
-  { agentIndex: 0, title: "Preisvergleich", startHour: 18, endHour: 19, color: "#a16207", processIndex: 5 },
-  { agentIndex: 0, title: "Bestellbestätigung", startHour: 21, endHour: 22, color: "#c2410c", processIndex: 1 },
+  // Marketing (Agent 0)
+  { agentIndex: 0, title: "Social Media Posting", startHour: 7, endHour: 8, color: "#c2410c", processIndex: 0 },
+  { agentIndex: 0, title: "Content Creation", startHour: 9, endHour: 11, color: "#78716c" },
+  { agentIndex: 0, title: "Social Media Posting", startHour: 12, endHour: 13, color: "#c2410c", processIndex: 0 },
+  { agentIndex: 0, title: "Analytics Review", startHour: 14, endHour: 15, color: "#a16207" },
+  { agentIndex: 0, title: "Newsletter-Versand", startHour: 16, endHour: 17, color: "#eab308", processIndex: 6 },
+  { agentIndex: 0, title: "Social Media Posting", startHour: 18, endHour: 19, color: "#c2410c", processIndex: 0 },
   
-  // Max (Agent 1) - Marketing
-  { agentIndex: 1, title: "Social Media Posting", startHour: 7, endHour: 8, color: "#c2410c", processIndex: 0 },
-  { agentIndex: 1, title: "Content Creation", startHour: 9, endHour: 11, color: "#78716c" },
-  { agentIndex: 1, title: "Social Media Posting", startHour: 12, endHour: 13, color: "#c2410c", processIndex: 0 },
-  { agentIndex: 1, title: "Analytics Review", startHour: 14, endHour: 15, color: "#a16207" },
-  { agentIndex: 1, title: "Newsletter-Versand", startHour: 16, endHour: 17, color: "#eab308", processIndex: 6 },
-  { agentIndex: 1, title: "Social Media Posting", startHour: 18, endHour: 19, color: "#c2410c", processIndex: 0 },
+  // Verkauf (Agent 1)
+  { agentIndex: 1, title: "Bestellbestätigung", startHour: 0, endHour: 1, color: "#c2410c", processIndex: 1 },
+  { agentIndex: 1, title: "Bestellbestätigung", startHour: 3, endHour: 4, color: "#c2410c", processIndex: 1 },
+  { agentIndex: 1, title: "Preisvergleich", startHour: 6, endHour: 7, color: "#a16207", processIndex: 5 },
+  { agentIndex: 1, title: "Bestellbestätigung", startHour: 9, endHour: 10, color: "#c2410c", processIndex: 1 },
+  { agentIndex: 1, title: "Kundenberatung", startHour: 10, endHour: 12, color: "#78716c" },
+  { agentIndex: 1, title: "Bestellbestätigung", startHour: 14, endHour: 15, color: "#c2410c", processIndex: 1 },
+  { agentIndex: 1, title: "Preisvergleich", startHour: 18, endHour: 19, color: "#a16207", processIndex: 5 },
+  { agentIndex: 1, title: "Bestellbestätigung", startHour: 21, endHour: 22, color: "#c2410c", processIndex: 1 },
   
-  // Sophie (Agent 2) - Logistik
+  // Logistik (Agent 2)
   { agentIndex: 2, title: "Inventur-Check", startHour: 5, endHour: 6, color: "#22c55e", processIndex: 2 },
   { agentIndex: 2, title: "Versandvorbereitung", startHour: 7, endHour: 9, color: "#c2410c", processIndex: 7 },
   { agentIndex: 2, title: "Versandvorbereitung", startHour: 10, endHour: 12, color: "#c2410c", processIndex: 7 },
@@ -258,7 +282,7 @@ export const seedScheduleEntries = [
   { agentIndex: 2, title: "Versandvorbereitung", startHour: 16, endHour: 18, color: "#c2410c", processIndex: 7 },
   { agentIndex: 2, title: "Inventur-Check", startHour: 20, endHour: 21, color: "#22c55e", processIndex: 2 },
   
-  // Felix (Agent 3) - Support
+  // Support (Agent 3)
   { agentIndex: 3, title: "Ticket-Triage", startHour: 8, endHour: 9, color: "#3b82f6", processIndex: 3 },
   { agentIndex: 3, title: "Retouren-Verarbeitung", startHour: 9, endHour: 11, color: "#a16207", processIndex: 4 },
   { agentIndex: 3, title: "Ticket-Triage", startHour: 12, endHour: 13, color: "#3b82f6", processIndex: 3 },
@@ -288,7 +312,7 @@ export function getAgentCurrentProcess(agentIndex: number, hour: number): typeof
 // Calculate global stats
 export function getGlobalStats() {
   const activeAgents = seedAgents.filter(a => a.status === 'active' || a.status === 'busy').length;
-  const totalAgents = seedAgents.length;
+  const totalAgents = seedAgents.reduce((sum, a) => sum + (a.agentCount || 1), 0);
   
   const currentHour = new Date().getHours();
   const runningProcesses = seedScheduleEntries.filter(

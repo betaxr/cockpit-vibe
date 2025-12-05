@@ -1,4 +1,4 @@
-import { GripVertical } from "lucide-react";
+import { GripVertical, Move } from "lucide-react";
 import { ReactNode } from "react";
 
 interface ModuleCardProps {
@@ -21,25 +21,44 @@ export default function ModuleCard({
   return (
     <div
       className={`
-        relative overflow-hidden
-        bg-gradient-to-br from-[oklch(0.18_0.03_50/70%)] to-[oklch(0.12_0.02_50/60%)]
+        relative overflow-hidden group
+        bg-gradient-to-br from-[oklch(0.16_0.02_50/60%)] to-[oklch(0.11_0.015_50/50%)]
         backdrop-blur-xl
-        border-2 ${isEditable ? "border-[oklch(0.55_0.15_45/50%)]" : "border-[oklch(0.5_0.12_45/35%)]"}
+        border ${isEditable ? "border-[oklch(0.55_0.15_45/40%)]" : "border-[oklch(0.45_0.10_45/25%)]"}
         rounded-xl
-        transition-all duration-300
-        ${isEditable ? "cursor-grab active:cursor-grabbing hover:border-[oklch(0.7_0.18_50/60%)]" : "hover:border-[oklch(0.55_0.14_45/50%)]"}
+        transition-all duration-200
+        ${isEditable ? "cursor-grab active:cursor-grabbing hover:border-[oklch(0.65_0.16_50/50%)] hover:shadow-[0_0_20px_oklch(0.5_0.15_45/15%)]" : "hover:border-[oklch(0.50_0.12_45/35%)]"}
         ${className}
       `}
     >
       {/* Subtle inner glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.35_0.1_45/8%)] to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.35_0.1_45/5%)] to-transparent pointer-events-none" />
+      
+      {/* Edit Mode Grip Handles - visible when editable */}
+      {isEditable && (
+        <>
+          {/* Top-left grip */}
+          <div className="absolute top-0 left-0 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+            <div className="p-1 rounded bg-[oklch(0.25_0.05_45/80%)] border border-[oklch(0.55_0.15_45/40%)]">
+              <Move className="w-3 h-3 text-white/50" />
+            </div>
+          </div>
+          
+          {/* Corner resize handles */}
+          <div className="absolute bottom-0 right-0 w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity z-20 cursor-se-resize">
+            <div className="absolute bottom-1 right-1 w-2 h-2 border-r-2 border-b-2 border-[oklch(0.55_0.15_45/60%)] rounded-br" />
+          </div>
+        </>
+      )}
       
       {/* Header */}
       {title && (
-        <div className="relative z-10 px-4 py-3 border-b border-[oklch(0.5_0.12_45/25%)] flex items-center gap-2 bg-[oklch(0.2_0.035_50/50%)]">
-          {isEditable && <GripVertical className="w-4 h-4 opacity-30" strokeWidth={1.5} />}
-          {icon && <span className="opacity-40">{icon}</span>}
-          <span className="text-sm font-medium text-white/80">{title}</span>
+        <div className="relative z-10 px-4 py-2.5 border-b border-[oklch(0.45_0.10_45/20%)] flex items-center gap-2 bg-[oklch(0.18_0.025_50/40%)]">
+          {isEditable && (
+            <GripVertical className="w-3.5 h-3.5 text-white/25 hover:text-white/50 transition-colors cursor-grab" strokeWidth={1.5} />
+          )}
+          {icon && <span className="text-white/30">{icon}</span>}
+          <span className="text-xs font-medium text-white/70 tracking-wide">{title}</span>
         </div>
       )}
 
@@ -48,9 +67,13 @@ export default function ModuleCard({
         {children}
       </div>
       
-      {/* Edit mode indicator */}
-      {isEditable && (
-        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[oklch(0.7_0.18_50)] animate-pulse" />
+      {/* Edit mode indicator dot */}
+      {isEditable && !title && (
+        <div className="absolute top-2 right-2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+          <div className="p-1 rounded bg-[oklch(0.25_0.05_45/80%)] border border-[oklch(0.55_0.15_45/40%)]">
+            <GripVertical className="w-3 h-3 text-white/40" />
+          </div>
+        </div>
       )}
     </div>
   );
@@ -67,15 +90,15 @@ export function HeaderBar({ children, className = "" }: HeaderBarProps) {
     <div
       className={`
         relative overflow-hidden
-        bg-gradient-to-r from-[oklch(0.18_0.03_50/60%)] to-[oklch(0.15_0.025_50/50%)]
+        bg-gradient-to-r from-[oklch(0.16_0.02_50/50%)] to-[oklch(0.13_0.02_50/40%)]
         backdrop-blur-xl
-        border border-[oklch(0.5_0.12_45/30%)]
+        border border-[oklch(0.45_0.10_45/25%)]
         rounded-xl
         px-4 py-2
         ${className}
       `}
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-[oklch(0.35_0.1_45/5%)] to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[oklch(0.35_0.1_45/3%)] to-transparent pointer-events-none" />
       <div className="relative z-10">
         {children}
       </div>

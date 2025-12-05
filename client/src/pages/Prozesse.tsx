@@ -44,7 +44,8 @@ export default function Prozesse() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
+      {/* MaxWidth Container with Apple HIG spacing */}
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         {/* Header with KPIs */}
         <div className="flex items-start justify-between">
           <div>
