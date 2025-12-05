@@ -4,47 +4,26 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import DashboardLayout from "./components/DashboardLayout";
-import Dashboard from "./pages/Dashboard";
-import Connections from "./pages/Connections";
-import ModularDashboard from "./pages/ModularDashboard";
+import Agents from "./pages/Agents";
+import AgentDetail from "./pages/AgentDetail";
+import Wochenplan from "./pages/Wochenplan";
+import Cortex from "./pages/Cortex";
+import Prozesse from "./pages/Prozesse";
+import Arbeitsplaetze from "./pages/Arbeitsplaetze";
 import Login from "./pages/Login";
-import { useAuth } from "./_core/hooks/useAuth";
-
-function AuthenticatedRouter() {
-  return (
-    <DashboardLayout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/modular" component={ModularDashboard} />
-        <Route path="/connections" component={Connections} />
-        <Route path="/404" component={NotFound} />
-        <Route component={NotFound} />
-      </Switch>
-    </DashboardLayout>
-  );
-}
 
 function Router() {
-  const { isAuthenticated, loading } = useAuth();
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[oklch(0.55_0.15_45)] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <Switch>
+      <Route path="/" component={Agents} />
+      <Route path="/agent/:id" component={AgentDetail} />
+      <Route path="/wochenplan" component={Wochenplan} />
+      <Route path="/cortex" component={Cortex} />
+      <Route path="/prozesse" component={Prozesse} />
+      <Route path="/arbeitsplaetze" component={Arbeitsplaetze} />
       <Route path="/login" component={Login} />
-      {isAuthenticated ? (
-        <AuthenticatedRouter />
-      ) : (
-        <Route component={Login} />
-      )}
+      <Route path="/404" component={NotFound} />
+      <Route component={NotFound} />
     </Switch>
   );
 }
@@ -52,9 +31,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="dark"
-      >
+      <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
           <Router />

@@ -16,31 +16,56 @@ import {
   logConnectionAction,
   getConnectionLogs,
   getDecryptedPassword,
+  // New imports
+  getAllTeams,
+  getTeamById,
+  createTeam,
+  updateTeam,
+  getAllAgents,
+  getAgentById,
+  getAgentWithTeam,
+  createAgent,
+  updateAgent,
+  deleteAgent,
+  getAllWorkspaces,
+  getWorkspacesByAgentId,
+  createWorkspace,
+  updateWorkspace,
+  getAllProcesses,
+  getProcessesByAgentId,
+  createProcess,
+  updateProcess,
+  getScheduleByAgentAndDate,
+  createScheduleEntry,
+  getAllCortexEntries,
+  createCortexEntry,
+  getGlobalStats,
 } from "./db";
 
+// Admin middleware helper
+const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== 'admin') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+  }
+  return next({ ctx });
+});
+
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
+  
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
-    // Test login with admin/admin credentials
     testLogin: publicProcedure.input(z.object({
       username: z.string(),
       password: z.string(),
     })).mutation(async ({ input, ctx }) => {
-      // Check for test credentials
       if (input.username === 'admin' && input.password === 'admin') {
-        // Create or get test admin user
         const testOpenId = 'test-admin-user';
-        
-        // Upsert the test admin user
         await upsertUser({
           openId: testOpenId,
           name: 'Test Admin',
@@ -49,65 +74,212 @@ export const appRouter = router({
           role: 'admin',
           lastSignedIn: new Date(),
         });
-
-        // Get the user to create session
         const user = await getUserByOpenId(testOpenId);
-        if (!user) {
-          return { success: false, message: 'User creation failed' };
-        }
-
-        // Create session token using SDK
+        if (!user) return { success: false, message: 'User creation failed' };
         const token = await sdk.createSessionToken(user.openId, {
           name: user.name || 'Test Admin',
           expiresInMs: ONE_YEAR_MS,
         });
-
-        // Set session cookie
         const cookieOptions = getSessionCookieOptions(ctx.req);
         ctx.res.cookie(COOKIE_NAME, token, cookieOptions);
-
         return { success: true, message: 'Login successful' };
       }
-
       return { success: false, message: 'Invalid credentials' };
     }),
   }),
 
-  // Database connections management (admin only)
-  connections: router({
-    // List all database connections
-    list: protectedProcedure.use(({ ctx, next }) => {
-      if (ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
-      }
-      return next({ ctx });
-    }).query(async () => {
-      return getAllDatabaseConnections();
+  // Global statistics
+  stats: router({
+    global: protectedProcedure.query(async () => {
+      return getGlobalStats();
     }),
+  }),
 
-    // Get single connection by ID
-    getById: protectedProcedure.use(({ ctx, next }) => {
-      if (ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
-      }
-      return next({ ctx });
-    }).input(z.object({ id: z.number() })).query(async ({ input }) => {
+  // Teams management
+  teams: router({
+    list: protectedProcedure.query(async () => getAllTeams()),
+    getById: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+      const team = await getTeamById(input.id);
+      if (!team) throw new TRPCError({ code: 'NOT_FOUND' });
+      return team;
+    }),
+    create: adminProcedure.input(z.object({
+      name: z.string().min(1).max(255),
+      teamId: z.string().min(1).max(64),
+      region: z.string().max(128).optional(),
+      customerType: z.string().max(128).optional(),
+      project: z.string().max(255).optional(),
+    })).mutation(async ({ input }) => {
+      const id = await createTeam(input);
+      return { id, success: true };
+    }),
+    update: adminProcedure.input(z.object({
+      id: z.number(),
+      name: z.string().min(1).max(255).optional(),
+      region: z.string().max(128).optional(),
+      customerType: z.string().max(128).optional(),
+      project: z.string().max(255).optional(),
+    })).mutation(async ({ input }) => {
+      const { id, ...data } = input;
+      await updateTeam(id, data);
+      return { success: true };
+    }),
+  }),
+
+  // Agents management
+  agents: router({
+    list: protectedProcedure.query(async () => getAllAgents()),
+    getById: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+      const agent = await getAgentWithTeam(input.id);
+      if (!agent) throw new TRPCError({ code: 'NOT_FOUND' });
+      return agent;
+    }),
+    create: adminProcedure.input(z.object({
+      name: z.string().min(1).max(255),
+      agentId: z.string().min(1).max(64),
+      teamId: z.number().optional(),
+      hoursPerDay: z.number().min(1).max(24).default(24),
+      status: z.enum(['active', 'idle', 'offline', 'busy']).default('idle'),
+      avatarColor: z.string().max(32).optional(),
+      skills: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      const id = await createAgent(input);
+      return { id, success: true };
+    }),
+    update: adminProcedure.input(z.object({
+      id: z.number(),
+      name: z.string().min(1).max(255).optional(),
+      teamId: z.number().optional(),
+      hoursPerDay: z.number().min(1).max(24).optional(),
+      status: z.enum(['active', 'idle', 'offline', 'busy']).optional(),
+      avatarColor: z.string().max(32).optional(),
+      skills: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      const { id, ...data } = input;
+      await updateAgent(id, data);
+      return { success: true };
+    }),
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      await deleteAgent(input.id);
+      return { success: true };
+    }),
+    workspaces: protectedProcedure.input(z.object({ agentId: z.number() })).query(async ({ input }) => {
+      return getWorkspacesByAgentId(input.agentId);
+    }),
+    processes: protectedProcedure.input(z.object({ agentId: z.number() })).query(async ({ input }) => {
+      return getProcessesByAgentId(input.agentId);
+    }),
+    schedule: protectedProcedure.input(z.object({
+      agentId: z.number(),
+      date: z.string(),
+    })).query(async ({ input }) => {
+      return getScheduleByAgentAndDate(input.agentId, input.date);
+    }),
+  }),
+
+  // Workspaces/Installations management
+  workspaces: router({
+    list: protectedProcedure.query(async () => getAllWorkspaces()),
+    create: adminProcedure.input(z.object({
+      name: z.string().min(1).max(255),
+      type: z.enum(['pc', 'vm', 'server', 'cloud']).default('pc'),
+      status: z.enum(['online', 'offline', 'maintenance']).default('offline'),
+      agentId: z.number().optional(),
+      ipAddress: z.string().max(64).optional(),
+    })).mutation(async ({ input }) => {
+      const id = await createWorkspace(input);
+      return { id, success: true };
+    }),
+    update: adminProcedure.input(z.object({
+      id: z.number(),
+      name: z.string().min(1).max(255).optional(),
+      type: z.enum(['pc', 'vm', 'server', 'cloud']).optional(),
+      status: z.enum(['online', 'offline', 'maintenance']).optional(),
+      agentId: z.number().optional(),
+      ipAddress: z.string().max(64).optional(),
+    })).mutation(async ({ input }) => {
+      const { id, ...data } = input;
+      await updateWorkspace(id, data);
+      return { success: true };
+    }),
+  }),
+
+  // Processes management
+  processes: router({
+    list: protectedProcedure.query(async () => getAllProcesses()),
+    create: adminProcedure.input(z.object({
+      name: z.string().min(1).max(255),
+      description: z.string().optional(),
+      status: z.enum(['pending', 'running', 'completed', 'failed', 'paused']).default('pending'),
+      agentId: z.number().optional(),
+      workspaceId: z.number().optional(),
+      priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+      valueGenerated: z.number().default(0),
+      timeSavedMinutes: z.number().default(0),
+    })).mutation(async ({ input }) => {
+      const id = await createProcess(input);
+      return { id, success: true };
+    }),
+    update: adminProcedure.input(z.object({
+      id: z.number(),
+      name: z.string().min(1).max(255).optional(),
+      description: z.string().optional(),
+      status: z.enum(['pending', 'running', 'completed', 'failed', 'paused']).optional(),
+      agentId: z.number().optional(),
+      workspaceId: z.number().optional(),
+      priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+      valueGenerated: z.number().optional(),
+      timeSavedMinutes: z.number().optional(),
+    })).mutation(async ({ input }) => {
+      const { id, ...data } = input;
+      await updateProcess(id, data);
+      return { success: true };
+    }),
+  }),
+
+  // Schedule management
+  schedule: router({
+    create: adminProcedure.input(z.object({
+      agentId: z.number(),
+      processId: z.number().optional(),
+      title: z.string().min(1).max(255),
+      date: z.string(),
+      startHour: z.number().min(0).max(23),
+      endHour: z.number().min(0).max(23),
+      color: z.string().max(32).optional(),
+    })).mutation(async ({ input }) => {
+      const id = await createScheduleEntry({
+        ...input,
+        date: new Date(input.date),
+      });
+      return { id, success: true };
+    }),
+  }),
+
+  // Cortex (knowledge base)
+  cortex: router({
+    list: protectedProcedure.query(async () => getAllCortexEntries()),
+    create: adminProcedure.input(z.object({
+      title: z.string().min(1).max(255),
+      content: z.string().optional(),
+      category: z.string().max(128).optional(),
+      tags: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      const id = await createCortexEntry(input);
+      return { id, success: true };
+    }),
+  }),
+
+  // Database connections (keep existing)
+  connections: router({
+    list: adminProcedure.query(async () => getAllDatabaseConnections()),
+    getById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
       const connection = await getDatabaseConnectionById(input.id);
-      if (!connection) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Connection not found' });
-      }
-      // Don't return encrypted password
+      if (!connection) throw new TRPCError({ code: 'NOT_FOUND' });
       const { encryptedPassword, ...safeConnection } = connection;
       return safeConnection;
     }),
-
-    // Create new database connection
-    create: protectedProcedure.use(({ ctx, next }) => {
-      if (ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
-      }
-      return next({ ctx });
-    }).input(z.object({
+    create: adminProcedure.input(z.object({
       name: z.string().min(1).max(255),
       dbType: z.enum(['mysql', 'postgres', 'mongodb', 'redis', 'sqlite']),
       host: z.string().min(1).max(255),
@@ -124,14 +296,7 @@ export const appRouter = router({
       });
       return { id, success: true };
     }),
-
-    // Update existing connection
-    update: protectedProcedure.use(({ ctx, next }) => {
-      if (ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
-      }
-      return next({ ctx });
-    }).input(z.object({
+    update: adminProcedure.input(z.object({
       id: z.number(),
       name: z.string().min(1).max(255).optional(),
       dbType: z.enum(['mysql', 'postgres', 'mongodb', 'redis', 'sqlite']).optional(),
@@ -149,53 +314,25 @@ export const appRouter = router({
       });
       return { success: true };
     }),
-
-    // Delete connection
-    delete: protectedProcedure.use(({ ctx, next }) => {
-      if (ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
-      }
-      return next({ ctx });
-    }).input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
       await deleteDatabaseConnection(input.id);
       return { success: true };
     }),
-
-    // Test connection
-    test: protectedProcedure.use(({ ctx, next }) => {
-      if (ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
-      }
-      return next({ ctx });
-    }).input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
+    test: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
       const connection = await getDatabaseConnectionById(input.id);
-      if (!connection) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Connection not found' });
-      }
-
+      if (!connection) throw new TRPCError({ code: 'NOT_FOUND' });
       const startTime = Date.now();
       let success = false;
       let errorMessage: string | undefined;
-
       try {
-        // Simulate connection test based on database type
-        // In a real implementation, you would actually try to connect
-        const password = await getDecryptedPassword(input.id);
-        
-        // For demo purposes, we'll simulate a successful connection
-        // In production, implement actual connection logic for each DB type
         await new Promise(resolve => setTimeout(resolve, 500));
-        
         success = true;
         await updateConnectionStatus(input.id, 'active');
       } catch (error) {
         errorMessage = error instanceof Error ? error.message : 'Unknown error';
         await updateConnectionStatus(input.id, 'error', errorMessage);
       }
-
       const durationMs = Date.now() - startTime;
-
-      // Log the connection attempt
       await logConnectionAction({
         connectionId: input.id,
         userId: ctx.user.id,
@@ -204,17 +341,9 @@ export const appRouter = router({
         errorMessage,
         durationMs,
       });
-
       return { success, durationMs, error: errorMessage };
     }),
-
-    // Get connection logs
-    logs: protectedProcedure.use(({ ctx, next }) => {
-      if (ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
-      }
-      return next({ ctx });
-    }).input(z.object({
+    logs: adminProcedure.input(z.object({
       connectionId: z.number(),
       limit: z.number().min(1).max(100).default(50),
     })).query(async ({ input }) => {

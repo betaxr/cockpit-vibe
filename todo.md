@@ -36,3 +36,49 @@
 - [x] Grid-based layout system for modular dashboard (20px snap grid)
 - [x] Test login with admin/admin credentials
 - [x] Unit tests for login functionality (26 tests total, all passing)
+
+## Major Refactor - Agent Management System
+
+### Sticky/Snap Module System
+- [x] Modules snap to each other (no overlapping)
+- [x] Equal spacing between modules (gap system)
+- [x] Modules cannot be placed far from others
+- [x] Grid-based docking system
+
+### Navigation Update
+- [x] Remove "Modular" from navigation
+- [x] Add "Agenten" page
+- [x] Add "Wochenplan" page
+- [x] Add "Cortex" page
+- [x] Add "Prozesse" page
+- [x] Add "Arbeitsplätze" (Installationen) page
+
+### Narrative/Human Perspective
+- [x] Replace technical metrics with human impact metrics
+- [x] KPIs: Prozesse, Wertschöpfung (€), Zeitersparnis (h), Auslastung (%)
+- [x] Agent profiles with team info
+
+### Agent Detail View
+- [x] Agent silhouette visualization
+- [x] Team info (name, ID, hours per day)
+- [x] Group/Context info (Region, Customer type, Project)
+- [x] Workspaces list
+- [x] Daily schedule with time slots
+- [x] Calendar widget
+- [x] TOP Skills section (coming soon placeholder)
+
+### Global Modular Toggle
+- [x] All pages get modular mechanics
+- [x] Global switch for edit mode vs static mode
+- [x] Consistent module behavior across all views
+
+### Database Schema
+- [x] Agents table
+- [x] Processes table
+- [x] Workspaces/Installations table
+- [x] Teams table
+- [x] Schedule/Tasks table
+- [x] Cortex (knowledge base) table
+
+### Testing
+- [x] 39 unit tests passing (agents, processes, workspaces, cortex, stats, auth)

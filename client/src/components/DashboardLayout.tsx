@@ -21,16 +21,34 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Database, LayoutGrid } from "lucide-react";
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { Bot, Calendar, Brain, Workflow, Monitor, LogOut, PanelLeft, GripVertical } from "lucide-react";
+import { CSSProperties, useEffect, useRef, useState, createContext, useContext } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
+import { Switch } from "./ui/switch";
+
+// Global edit mode context
+interface EditModeContextType {
+  isEditMode: boolean;
+  setEditMode: (mode: boolean) => void;
+}
+
+const EditModeContext = createContext<EditModeContextType>({
+  isEditMode: false,
+  setEditMode: () => {},
+});
+
+export function useEditMode() {
+  return useContext(EditModeContext);
+}
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: LayoutGrid, label: "Modular", path: "/modular" },
-  { icon: Database, label: "Verbindungen", path: "/connections" },
+  { icon: Bot, label: "Agenten", path: "/" },
+  { icon: Calendar, label: "Wochenplan", path: "/wochenplan" },
+  { icon: Brain, label: "Cortex", path: "/cortex" },
+  { icon: Workflow, label: "Prozesse", path: "/prozesse" },
+  { icon: Monitor, label: "Arbeitsplätze", path: "/arbeitsplaetze" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -47,11 +65,19 @@ export default function DashboardLayout({
     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
+  const [isEditMode, setEditMode] = useState(() => {
+    const saved = localStorage.getItem("edit-mode");
+    return saved === "true";
+  });
   const { loading, user } = useAuth();
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
   }, [sidebarWidth]);
+
+  useEffect(() => {
+    localStorage.setItem("edit-mode", isEditMode.toString());
+  }, [isEditMode]);
 
   if (loading) {
     return <DashboardLayoutSkeleton />
@@ -63,10 +89,10 @@ export default function DashboardLayout({
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-6">
             <h1 className="text-2xl font-semibold tracking-tight text-center">
-              Sign in to continue
+              Anmeldung erforderlich
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Access to this dashboard requires authentication. Continue to launch the login flow.
+              Bitte melden Sie sich an, um auf das Dashboard zuzugreifen.
             </p>
           </div>
           <Button
@@ -76,7 +102,7 @@ export default function DashboardLayout({
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all"
           >
-            Sign in
+            Anmelden
           </Button>
         </div>
       </div>
@@ -84,17 +110,19 @@ export default function DashboardLayout({
   }
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": `${sidebarWidth}px`,
-        } as CSSProperties
-      }
-    >
-      <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
-        {children}
-      </DashboardLayoutContent>
-    </SidebarProvider>
+    <EditModeContext.Provider value={{ isEditMode, setEditMode }}>
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": `${sidebarWidth}px`,
+          } as CSSProperties
+        }
+      >
+        <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
+          {children}
+        </DashboardLayoutContent>
+      </SidebarProvider>
+    </EditModeContext.Provider>
   );
 }
 
@@ -115,6 +143,7 @@ function DashboardLayoutContent({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
+  const { isEditMode, setEditMode } = useEditMode();
 
   useEffect(() => {
     if (isCollapsed) {
@@ -192,7 +221,7 @@ function DashboardLayoutContent({
                       className={`h-10 transition-all font-normal`}
                     >
                       <item.icon
-                        className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
+                        className={`h-4 w-4 opacity-50 ${isActive ? "opacity-100" : ""}`}
                       />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
@@ -200,6 +229,23 @@ function DashboardLayoutContent({
                 );
               })}
             </SidebarMenu>
+            
+            {/* Edit Mode Toggle */}
+            {!isCollapsed && (
+              <div className="px-4 py-4 mt-auto border-t border-[oklch(0.5_0.12_45/20%)]">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-sm text-white/60">
+                    <GripVertical className="h-4 w-4 opacity-50" />
+                    <span>Layout bearbeiten</span>
+                  </div>
+                  <Switch
+                    checked={isEditMode}
+                    onCheckedChange={setEditMode}
+                    className="data-[state=checked]:bg-[oklch(0.55_0.15_45)]"
+                  />
+                </div>
+              </div>
+            )}
           </SidebarContent>
 
           <SidebarFooter className="p-3">
@@ -227,7 +273,7 @@ function DashboardLayoutContent({
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
+                  <span>Abmelden</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

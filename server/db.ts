@@ -224,3 +224,203 @@ export async function getConnectionLogs(connectionId: number, limit = 50) {
     .orderBy(desc(connectionLogs.createdAt))
     .limit(limit);
 }
+
+
+// ============ Teams ============
+
+import { teams, agents, workspaces, processes, scheduleEntries, cortexEntries, InsertTeam, InsertAgent, InsertWorkspace, InsertProcess, InsertScheduleEntry, InsertCortexEntry } from "../drizzle/schema";
+import { sql } from "drizzle-orm";
+
+export async function getAllTeams() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(teams).orderBy(desc(teams.createdAt));
+}
+
+export async function getTeamById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(teams).where(eq(teams.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createTeam(data: InsertTeam) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(teams).values(data);
+  return result[0].insertId;
+}
+
+export async function updateTeam(id: number, data: Partial<InsertTeam>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(teams).set(data).where(eq(teams.id, id));
+}
+
+// ============ Agents ============
+
+export async function getAllAgents() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(agents).orderBy(desc(agents.createdAt));
+}
+
+export async function getAgentById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(agents).where(eq(agents.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getAgentWithTeam(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const agent = await db.select().from(agents).where(eq(agents.id, id)).limit(1);
+  if (!agent[0]) return undefined;
+  
+  let team = null;
+  if (agent[0].teamId) {
+    const teamResult = await db.select().from(teams).where(eq(teams.id, agent[0].teamId)).limit(1);
+    team = teamResult[0] || null;
+  }
+  
+  return { ...agent[0], team };
+}
+
+export async function createAgent(data: InsertAgent) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(agents).values(data);
+  return result[0].insertId;
+}
+
+export async function updateAgent(id: number, data: Partial<InsertAgent>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(agents).set(data).where(eq(agents.id, id));
+}
+
+export async function deleteAgent(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(agents).where(eq(agents.id, id));
+}
+
+// ============ Workspaces ============
+
+export async function getAllWorkspaces() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(workspaces).orderBy(desc(workspaces.createdAt));
+}
+
+export async function getWorkspacesByAgentId(agentId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(workspaces).where(eq(workspaces.agentId, agentId));
+}
+
+export async function createWorkspace(data: InsertWorkspace) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(workspaces).values(data);
+  return result[0].insertId;
+}
+
+export async function updateWorkspace(id: number, data: Partial<InsertWorkspace>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(workspaces).set(data).where(eq(workspaces.id, id));
+}
+
+// ============ Processes ============
+
+export async function getAllProcesses() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(processes).orderBy(desc(processes.createdAt));
+}
+
+export async function getProcessesByAgentId(agentId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(processes).where(eq(processes.agentId, agentId));
+}
+
+export async function createProcess(data: InsertProcess) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(processes).values(data);
+  return result[0].insertId;
+}
+
+export async function updateProcess(id: number, data: Partial<InsertProcess>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(processes).set(data).where(eq(processes.id, id));
+}
+
+// ============ Schedule ============
+
+export async function getScheduleByAgentAndDate(agentId: number, date: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(scheduleEntries)
+    .where(sql`${scheduleEntries.agentId} = ${agentId} AND ${scheduleEntries.date} = ${date}`)
+    .orderBy(scheduleEntries.startHour);
+}
+
+export async function createScheduleEntry(data: InsertScheduleEntry) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(scheduleEntries).values(data);
+  return result[0].insertId;
+}
+
+// ============ Cortex ============
+
+export async function getAllCortexEntries() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cortexEntries).orderBy(desc(cortexEntries.createdAt));
+}
+
+export async function createCortexEntry(data: InsertCortexEntry) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(cortexEntries).values(data);
+  return result[0].insertId;
+}
+
+// ============ Statistics ============
+
+export async function getGlobalStats() {
+  const db = await getDb();
+  if (!db) return { processCount: 0, valueGenerated: 0, timeSaved: 0, utilization: 0 };
+  
+  const processStats = await db.select({
+    count: sql<number>`COUNT(*)`,
+    totalValue: sql<number>`COALESCE(SUM(${processes.valueGenerated}), 0)`,
+    totalTimeSaved: sql<number>`COALESCE(SUM(${processes.timeSavedMinutes}), 0)`,
+  }).from(processes);
+  
+  const agentStats = await db.select({
+    count: sql<number>`COUNT(*)`,
+    activeCount: sql<number>`SUM(CASE WHEN ${agents.status} = 'active' OR ${agents.status} = 'busy' THEN 1 ELSE 0 END)`,
+  }).from(agents);
+  
+  const stats = processStats[0] || { count: 0, totalValue: 0, totalTimeSaved: 0 };
+  const agentData = agentStats[0] || { count: 0, activeCount: 0 };
+  
+  const utilization = agentData.count > 0 
+    ? Math.round((Number(agentData.activeCount) / Number(agentData.count)) * 100) 
+    : 0;
+  
+  return {
+    processCount: Number(stats.count),
+    valueGenerated: Number(stats.totalValue) / 100, // Convert cents to euros
+    timeSaved: Math.round(Number(stats.totalTimeSaved) / 60), // Convert minutes to hours
+    utilization,
+  };
+}

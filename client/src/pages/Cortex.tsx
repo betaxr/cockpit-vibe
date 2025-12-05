@@ -1,0 +1,87 @@
+import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
+import ModuleCard from "@/components/ModuleCard";
+import { trpc } from "@/lib/trpc";
+import { Brain, Search, Plus, Tag } from "lucide-react";
+import { useState } from "react";
+
+export default function Cortex() {
+  const { isEditMode } = useEditMode();
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const { data: entries = [] } = trpc.cortex.list.useQuery();
+  
+  const filteredEntries = entries.filter(e => 
+    e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    e.content?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Cortex</h1>
+            <p className="text-white/50 mt-1">Wissensdatenbank und Dokumentation</p>
+          </div>
+          
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[oklch(0.55_0.15_45)] text-white hover:bg-[oklch(0.6_0.17_45)] transition-colors">
+            <Plus className="w-4 h-4" />
+            Neuer Eintrag
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+          <input
+            type="text"
+            placeholder="Suche in Cortex..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 rounded-xl bg-[oklch(0.18_0.03_50/70%)] border border-[oklch(0.5_0.12_45/30%)] text-white placeholder:text-white/40 focus:outline-none focus:border-[oklch(0.55_0.15_45/60%)]"
+          />
+        </div>
+
+        {/* Content Grid */}
+        <div className="grid grid-cols-3 gap-4">
+          {filteredEntries.length === 0 ? (
+            <ModuleCard 
+              className="col-span-3" 
+              icon={<Brain className="w-4 h-4" />}
+              isEditable={isEditMode}
+            >
+              <div className="text-center py-12">
+                <Brain className="w-16 h-16 mx-auto mb-4 opacity-20 text-white" />
+                <h3 className="text-lg font-medium text-white/80 mb-2">Cortex ist leer</h3>
+                <p className="text-white/50 mb-4">Fügen Sie Wissen hinzu, um Ihre Agenten zu verbessern</p>
+                <button className="px-4 py-2 rounded-lg bg-[oklch(0.55_0.15_45/30%)] text-white/70 hover:bg-[oklch(0.55_0.15_45/50%)] transition-colors">
+                  Ersten Eintrag erstellen
+                </button>
+              </div>
+            </ModuleCard>
+          ) : (
+            filteredEntries.map((entry) => (
+              <ModuleCard 
+                key={entry.id}
+                title={entry.title}
+                icon={<Brain className="w-4 h-4" />}
+                isEditable={isEditMode}
+              >
+                <p className="text-white/60 text-sm line-clamp-3">
+                  {entry.content || "Kein Inhalt"}
+                </p>
+                {entry.category && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <Tag className="w-3 h-3 text-white/40" />
+                    <span className="text-xs text-white/40">{entry.category}</span>
+                  </div>
+                )}
+              </ModuleCard>
+            ))
+          )}
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
