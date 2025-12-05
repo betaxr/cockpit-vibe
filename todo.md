@@ -214,4 +214,4 @@
 - [x] Run all tests and verify passing
 
 ### GitHub
-- [ ] Push to cockpit-vibe repository
+- [x] Push to cockpit-vibe repository (https://github.com/betaxr/cockpit-vibe)
