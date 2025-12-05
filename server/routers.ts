@@ -1,4 +1,4 @@
-import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
@@ -7,40 +7,18 @@ import { z } from "zod";
 import { upsertUser, getUserByOpenId } from "./db";
 import { sdk } from "./_core/sdk";
 import {
-  createDatabaseConnection,
-  updateDatabaseConnection,
-  deleteDatabaseConnection,
-  getDatabaseConnectionById,
-  getAllDatabaseConnections,
-  updateConnectionStatus,
-  logConnectionAction,
-  getConnectionLogs,
-  getDecryptedPassword,
-  // New imports
-  getAllTeams,
-  getTeamById,
-  createTeam,
-  updateTeam,
-  getAllAgents,
-  getAgentById,
-  getAgentWithTeam,
-  createAgent,
-  updateAgent,
-  deleteAgent,
-  getAllWorkspaces,
-  getWorkspacesByAgentId,
-  createWorkspace,
-  updateWorkspace,
-  getAllProcesses,
-  getProcessesByAgentId,
-  createProcess,
-  updateProcess,
-  getScheduleByAgentAndDate,
-  createScheduleEntry,
-  getAllCortexEntries,
-  createCortexEntry,
-  getGlobalStats,
-} from "./db";
+  seedTeams,
+  seedAgents,
+  seedWorkspaces,
+  seedProcesses,
+  seedScheduleEntries,
+  getProcessReliability,
+  getProcessTotalValue,
+  getAgentCurrentProcess,
+  getGlobalStats as getSeedGlobalStats,
+} from "./seedData";
+
+const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
 // Admin middleware helper
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -88,266 +66,258 @@ export const appRouter = router({
     }),
   }),
 
-  // Global statistics
+  // Global statistics using seed data
   stats: router({
-    global: protectedProcedure.query(async () => {
-      return getGlobalStats();
+    global: protectedProcedure.query(() => {
+      return getSeedGlobalStats();
     }),
   }),
 
-  // Teams management
+  // Teams from seed data
   teams: router({
-    list: protectedProcedure.query(async () => getAllTeams()),
-    getById: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-      const team = await getTeamById(input.id);
+    list: protectedProcedure.query(() => {
+      return seedTeams.map((team, index) => ({
+        id: index + 1,
+        ...team,
+      }));
+    }),
+    getById: protectedProcedure.input(z.object({ id: z.number() })).query(({ input }) => {
+      const team = seedTeams[input.id - 1];
       if (!team) throw new TRPCError({ code: 'NOT_FOUND' });
-      return team;
-    }),
-    create: adminProcedure.input(z.object({
-      name: z.string().min(1).max(255),
-      teamId: z.string().min(1).max(64),
-      region: z.string().max(128).optional(),
-      customerType: z.string().max(128).optional(),
-      project: z.string().max(255).optional(),
-    })).mutation(async ({ input }) => {
-      const id = await createTeam(input);
-      return { id, success: true };
-    }),
-    update: adminProcedure.input(z.object({
-      id: z.number(),
-      name: z.string().min(1).max(255).optional(),
-      region: z.string().max(128).optional(),
-      customerType: z.string().max(128).optional(),
-      project: z.string().max(255).optional(),
-    })).mutation(async ({ input }) => {
-      const { id, ...data } = input;
-      await updateTeam(id, data);
-      return { success: true };
+      return { id: input.id, ...team };
     }),
   }),
 
-  // Agents management
+  // Agents from seed data
   agents: router({
-    list: protectedProcedure.query(async () => getAllAgents()),
-    getById: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-      const agent = await getAgentWithTeam(input.id);
+    list: protectedProcedure.query(() => {
+      return seedAgents.map((agent, index) => ({
+        id: index + 1,
+        ...agent,
+        team: seedTeams[agent.teamIndex],
+      }));
+    }),
+    getById: protectedProcedure.input(z.object({ id: z.number() })).query(({ input }) => {
+      const agent = seedAgents[input.id - 1];
       if (!agent) throw new TRPCError({ code: 'NOT_FOUND' });
-      return agent;
+      return {
+        id: input.id,
+        ...agent,
+        team: seedTeams[agent.teamIndex],
+      };
     }),
-    create: adminProcedure.input(z.object({
-      name: z.string().min(1).max(255),
-      agentId: z.string().min(1).max(64),
-      teamId: z.number().optional(),
-      hoursPerDay: z.number().min(1).max(24).default(24),
-      status: z.enum(['active', 'idle', 'offline', 'busy']).default('idle'),
-      avatarColor: z.string().max(32).optional(),
-      skills: z.string().optional(),
-    })).mutation(async ({ input }) => {
-      const id = await createAgent(input);
-      return { id, success: true };
+    workspaces: protectedProcedure.input(z.object({ agentId: z.number() })).query(({ input }) => {
+      return seedWorkspaces
+        .filter(ws => ws.agentIndex === input.agentId - 1)
+        .map((ws, index) => ({
+          id: index + 1,
+          name: ws.name,
+          workspaceId: ws.workspaceId,
+          type: ws.type,
+          status: ws.status,
+          location: ws.location,
+        }));
     }),
-    update: adminProcedure.input(z.object({
-      id: z.number(),
-      name: z.string().min(1).max(255).optional(),
-      teamId: z.number().optional(),
-      hoursPerDay: z.number().min(1).max(24).optional(),
-      status: z.enum(['active', 'idle', 'offline', 'busy']).optional(),
-      avatarColor: z.string().max(32).optional(),
-      skills: z.string().optional(),
-    })).mutation(async ({ input }) => {
-      const { id, ...data } = input;
-      await updateAgent(id, data);
-      return { success: true };
-    }),
-    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
-      await deleteAgent(input.id);
-      return { success: true };
-    }),
-    workspaces: protectedProcedure.input(z.object({ agentId: z.number() })).query(async ({ input }) => {
-      return getWorkspacesByAgentId(input.agentId);
-    }),
-    processes: protectedProcedure.input(z.object({ agentId: z.number() })).query(async ({ input }) => {
-      return getProcessesByAgentId(input.agentId);
+    processes: protectedProcedure.input(z.object({ agentId: z.number() })).query(({ input }) => {
+      return seedProcesses
+        .filter(p => p.agentIndex === input.agentId - 1)
+        .map((p, index) => ({
+          id: index + 1,
+          name: p.name,
+          processId: p.processId,
+          description: p.description,
+          category: p.category,
+          status: 'completed' as const,
+          valueGenerated: getProcessTotalValue(p),
+          timeSavedMinutes: p.successCount * p.estimatedMinutes,
+          scheduleCount: p.scheduleCount,
+          successCount: p.successCount,
+          failCount: p.failCount,
+          reliability: getProcessReliability(p),
+        }));
     }),
     schedule: protectedProcedure.input(z.object({
       agentId: z.number(),
       date: z.string(),
-    })).query(async ({ input }) => {
-      return getScheduleByAgentAndDate(input.agentId, input.date);
+    })).query(({ input }) => {
+      return seedScheduleEntries
+        .filter(entry => entry.agentIndex === input.agentId - 1)
+        .map((entry, index) => ({
+          id: index + 1,
+          title: entry.title,
+          startHour: entry.startHour,
+          endHour: entry.endHour,
+          color: entry.color,
+          processId: entry.processIndex !== undefined ? entry.processIndex + 1 : null,
+        }));
+    }),
+    currentProcess: protectedProcedure.input(z.object({ agentId: z.number() })).query(({ input }) => {
+      const currentHour = new Date().getHours();
+      const entry = getAgentCurrentProcess(input.agentId - 1, currentHour);
+      if (!entry) return null;
+      return {
+        title: entry.title,
+        startHour: entry.startHour,
+        endHour: entry.endHour,
+        color: entry.color,
+      };
     }),
   }),
 
-  // Workspaces/Installations management
+  // Workspaces from seed data
   workspaces: router({
-    list: protectedProcedure.query(async () => getAllWorkspaces()),
-    create: adminProcedure.input(z.object({
-      name: z.string().min(1).max(255),
-      type: z.enum(['pc', 'vm', 'server', 'cloud']).default('pc'),
-      status: z.enum(['online', 'offline', 'maintenance']).default('offline'),
-      agentId: z.number().optional(),
-      ipAddress: z.string().max(64).optional(),
-    })).mutation(async ({ input }) => {
-      const id = await createWorkspace(input);
-      return { id, success: true };
-    }),
-    update: adminProcedure.input(z.object({
-      id: z.number(),
-      name: z.string().min(1).max(255).optional(),
-      type: z.enum(['pc', 'vm', 'server', 'cloud']).optional(),
-      status: z.enum(['online', 'offline', 'maintenance']).optional(),
-      agentId: z.number().optional(),
-      ipAddress: z.string().max(64).optional(),
-    })).mutation(async ({ input }) => {
-      const { id, ...data } = input;
-      await updateWorkspace(id, data);
-      return { success: true };
+    list: protectedProcedure.query(() => {
+      return seedWorkspaces.map((ws, index) => ({
+        id: index + 1,
+        name: ws.name,
+        workspaceId: ws.workspaceId,
+        type: ws.type,
+        status: ws.status,
+        location: ws.location,
+        agent: seedAgents[ws.agentIndex] ? {
+          id: ws.agentIndex + 1,
+          name: seedAgents[ws.agentIndex].name,
+          status: seedAgents[ws.agentIndex].status,
+        } : null,
+      }));
     }),
   }),
 
-  // Processes management
+  // Processes from seed data with statistics
   processes: router({
-    list: protectedProcedure.query(async () => getAllProcesses()),
-    create: adminProcedure.input(z.object({
-      name: z.string().min(1).max(255),
-      description: z.string().optional(),
-      status: z.enum(['pending', 'running', 'completed', 'failed', 'paused']).default('pending'),
-      agentId: z.number().optional(),
-      workspaceId: z.number().optional(),
-      priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
-      valueGenerated: z.number().default(0),
-      timeSavedMinutes: z.number().default(0),
-    })).mutation(async ({ input }) => {
-      const id = await createProcess(input);
-      return { id, success: true };
+    list: protectedProcedure.query(() => {
+      const currentHour = new Date().getHours();
+      
+      return seedProcesses.map((p, index) => {
+        const agent = seedAgents[p.agentIndex];
+        const isRunning = seedScheduleEntries.some(
+          entry => entry.agentIndex === p.agentIndex && 
+                   entry.processIndex === index &&
+                   entry.startHour <= currentHour && 
+                   entry.endHour > currentHour
+        );
+        
+        return {
+          id: index + 1,
+          name: p.name,
+          processId: p.processId,
+          description: p.description,
+          category: p.category,
+          estimatedMinutes: p.estimatedMinutes,
+          valuePerRun: p.valuePerRun,
+          scheduleCount: p.scheduleCount,
+          successCount: p.successCount,
+          failCount: p.failCount,
+          reliability: getProcessReliability(p),
+          totalValue: getProcessTotalValue(p),
+          totalTimeSaved: p.successCount * p.estimatedMinutes,
+          status: isRunning ? 'running' : 'idle',
+          agent: agent ? {
+            id: p.agentIndex + 1,
+            name: agent.name,
+            avatarColor: agent.avatarColor,
+          } : null,
+        };
+      });
     }),
-    update: adminProcedure.input(z.object({
-      id: z.number(),
-      name: z.string().min(1).max(255).optional(),
-      description: z.string().optional(),
-      status: z.enum(['pending', 'running', 'completed', 'failed', 'paused']).optional(),
-      agentId: z.number().optional(),
-      workspaceId: z.number().optional(),
-      priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
-      valueGenerated: z.number().optional(),
-      timeSavedMinutes: z.number().optional(),
-    })).mutation(async ({ input }) => {
-      const { id, ...data } = input;
-      await updateProcess(id, data);
-      return { success: true };
+    running: protectedProcedure.query(() => {
+      const currentHour = new Date().getHours();
+      const runningEntries = seedScheduleEntries.filter(
+        entry => entry.startHour <= currentHour && entry.endHour > currentHour
+      );
+      
+      return runningEntries.map(entry => {
+        const agent = seedAgents[entry.agentIndex];
+        const process = entry.processIndex !== undefined ? seedProcesses[entry.processIndex] : null;
+        
+        return {
+          title: entry.title,
+          agentId: entry.agentIndex + 1,
+          agentName: agent?.name || 'Unknown',
+          agentColor: agent?.avatarColor || '#888',
+          processId: entry.processIndex !== undefined ? entry.processIndex + 1 : null,
+          processName: process?.name || entry.title,
+          startHour: entry.startHour,
+          endHour: entry.endHour,
+          color: entry.color,
+        };
+      });
     }),
   }),
 
-  // Schedule management
+  // Schedule for week view
   schedule: router({
-    create: adminProcedure.input(z.object({
+    byAgent: protectedProcedure.input(z.object({
       agentId: z.number(),
-      processId: z.number().optional(),
-      title: z.string().min(1).max(255),
-      date: z.string(),
-      startHour: z.number().min(0).max(23),
-      endHour: z.number().min(0).max(23),
-      color: z.string().max(32).optional(),
-    })).mutation(async ({ input }) => {
-      const id = await createScheduleEntry({
-        ...input,
-        date: new Date(input.date),
-      });
-      return { id, success: true };
+    })).query(({ input }) => {
+      return seedScheduleEntries
+        .filter(entry => entry.agentIndex === input.agentId - 1)
+        .map((entry, index) => ({
+          id: index + 1,
+          title: entry.title,
+          startHour: entry.startHour,
+          endHour: entry.endHour,
+          color: entry.color,
+          processId: entry.processIndex !== undefined ? entry.processIndex + 1 : null,
+        }));
+    }),
+    week: protectedProcedure.input(z.object({
+      agentId: z.number().optional(),
+      weekStart: z.string(),
+    })).query(({ input }) => {
+      // Return schedule entries for the week
+      // For now, we repeat the daily schedule for each day
+      const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+      
+      const entries = input.agentId !== undefined
+        ? seedScheduleEntries.filter(e => e.agentIndex === (input.agentId as number) - 1)
+        : seedScheduleEntries;
+      
+      return days.map((day, dayIndex) => ({
+        day,
+        dayIndex,
+        entries: entries.map((entry, index) => ({
+          id: `${dayIndex}-${index}`,
+          title: entry.title,
+          startHour: entry.startHour,
+          endHour: entry.endHour,
+          color: entry.color,
+          agentId: entry.agentIndex + 1,
+          agentName: seedAgents[entry.agentIndex]?.name || 'Unknown',
+        })),
+      }));
     }),
   }),
 
-  // Cortex (knowledge base)
+  // Cortex (knowledge base) - placeholder
   cortex: router({
-    list: protectedProcedure.query(async () => getAllCortexEntries()),
-    create: adminProcedure.input(z.object({
-      title: z.string().min(1).max(255),
-      content: z.string().optional(),
-      category: z.string().max(128).optional(),
-      tags: z.string().optional(),
-    })).mutation(async ({ input }) => {
-      const id = await createCortexEntry(input);
-      return { id, success: true };
-    }),
-  }),
-
-  // Database connections (keep existing)
-  connections: router({
-    list: adminProcedure.query(async () => getAllDatabaseConnections()),
-    getById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-      const connection = await getDatabaseConnectionById(input.id);
-      if (!connection) throw new TRPCError({ code: 'NOT_FOUND' });
-      const { encryptedPassword, ...safeConnection } = connection;
-      return safeConnection;
-    }),
-    create: adminProcedure.input(z.object({
-      name: z.string().min(1).max(255),
-      dbType: z.enum(['mysql', 'postgres', 'mongodb', 'redis', 'sqlite']),
-      host: z.string().min(1).max(255),
-      port: z.number().min(1).max(65535),
-      database: z.string().max(255).optional(),
-      username: z.string().max(255).optional(),
-      password: z.string().optional(),
-      sslEnabled: z.boolean().default(false),
-    })).mutation(async ({ input, ctx }) => {
-      const id = await createDatabaseConnection({
-        ...input,
-        sslEnabled: input.sslEnabled ? 1 : 0,
-        createdById: ctx.user.id,
-      });
-      return { id, success: true };
-    }),
-    update: adminProcedure.input(z.object({
-      id: z.number(),
-      name: z.string().min(1).max(255).optional(),
-      dbType: z.enum(['mysql', 'postgres', 'mongodb', 'redis', 'sqlite']).optional(),
-      host: z.string().min(1).max(255).optional(),
-      port: z.number().min(1).max(65535).optional(),
-      database: z.string().max(255).optional(),
-      username: z.string().max(255).optional(),
-      password: z.string().optional(),
-      sslEnabled: z.boolean().optional(),
-    })).mutation(async ({ input }) => {
-      const { id, sslEnabled, ...rest } = input;
-      await updateDatabaseConnection(id, {
-        ...rest,
-        sslEnabled: sslEnabled !== undefined ? (sslEnabled ? 1 : 0) : undefined,
-      });
-      return { success: true };
-    }),
-    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
-      await deleteDatabaseConnection(input.id);
-      return { success: true };
-    }),
-    test: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
-      const connection = await getDatabaseConnectionById(input.id);
-      if (!connection) throw new TRPCError({ code: 'NOT_FOUND' });
-      const startTime = Date.now();
-      let success = false;
-      let errorMessage: string | undefined;
-      try {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        success = true;
-        await updateConnectionStatus(input.id, 'active');
-      } catch (error) {
-        errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        await updateConnectionStatus(input.id, 'error', errorMessage);
-      }
-      const durationMs = Date.now() - startTime;
-      await logConnectionAction({
-        connectionId: input.id,
-        userId: ctx.user.id,
-        action: 'test',
-        success: success ? 1 : 0,
-        errorMessage,
-        durationMs,
-      });
-      return { success, durationMs, error: errorMessage };
-    }),
-    logs: adminProcedure.input(z.object({
-      connectionId: z.number(),
-      limit: z.number().min(1).max(100).default(50),
-    })).query(async ({ input }) => {
-      return getConnectionLogs(input.connectionId, input.limit);
+    list: protectedProcedure.query(() => {
+      return [
+        {
+          id: 1,
+          title: "Bestellprozess Dokumentation",
+          content: "Anleitung für den automatisierten Bestellprozess...",
+          category: "Prozesse",
+          tags: "bestellung, automatisierung",
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: 2,
+          title: "Social Media Richtlinien",
+          content: "Guidelines für automatisierte Social Media Posts...",
+          category: "Marketing",
+          tags: "social, guidelines",
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: 3,
+          title: "Support-Ticket Kategorien",
+          content: "Übersicht der Ticket-Kategorien und Prioritäten...",
+          category: "Support",
+          tags: "tickets, kategorien",
+          createdAt: new Date().toISOString(),
+        },
+      ];
     }),
   }),
 });

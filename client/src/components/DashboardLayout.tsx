@@ -237,7 +237,7 @@ function DashboardLayoutContent({
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 text-sm text-white/60">
                     <GripVertical className="h-4 w-4 opacity-50" />
-                    <span>Layout bearbeiten</span>
+                    <span>Modular View Edit</span>
                   </div>
                   <Switch
                     checked={isEditMode}
@@ -245,6 +245,9 @@ function DashboardLayoutContent({
                     className="data-[state=checked]:bg-[oklch(0.55_0.15_45)]"
                   />
                 </div>
+                {isEditMode && (
+                  <p className="text-xs text-white/40 mt-2">Module per Drag & Drop verschieben</p>
+                )}
               </div>
             )}
           </SidebarContent>

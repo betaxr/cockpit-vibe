@@ -100,3 +100,48 @@
 - [x] Optimize module sizes
 - [x] Fine-tune typography and padding
 - [x] Consistent gap system (6px/8px grid)
+
+## Major Update - Narrative System & Drag-and-Drop
+
+### Narrative Seed Data
+- [x] Create realistic teams (Marketing, Sales, Support, Logistik)
+- [x] Create agents with names assigned to teams (Luna, Max, Sophie, Felix, Emma)
+- [x] Create processes with use cases (Social Media, Email, Reporting, etc.)
+- [x] Create workspaces (PCs, VMs) linked to agents
+- [x] Schedule entries linking agents to processes
+
+### Wochenplan Integration
+- [x] Connect agents to weekly schedule
+- [x] 24h view per agent (Tagesansicht)
+- [x] Week view for complete week (Wochenansicht)
+- [x] Agent selector in Wochenplan
+
+### Modular View Edit (Drag-and-Drop)
+- [x] Rename "Layout bearbeiten" to "Modular View Edit"
+- [x] Edit mode toggle in sidebar
+- [ ] Implement actual drag-and-drop for modules (in progress)
+- [ ] Snap-to-grid functionality
+- [ ] Prevent module overlap
+- [ ] Save module positions
+
+### Silhouette & Layout
+- [x] Remove percentage from silhouette (colors only)
+- [x] Logout button in user dropdown
+- [x] Remove "Übersicht" sidebar (use KPIs instead)
+- [ ] Optimize layout width (not full width)
+- [ ] Add spacing to header
+
+### Prozesse Page
+- [x] Show how often each process was scheduled
+- [x] Show reliability/success rate
+- [x] Show which agent is currently working on which process
+- [x] Move "Letzte Prozesse" to Prozesse page
+
+### KPIs
+- [x] Active agents count
+- [x] Total agents count
+- [x] Running processes count
+- [x] Replace sidebar overview with KPI cards
+
+### Testing
+- [x] 21 unit tests passing

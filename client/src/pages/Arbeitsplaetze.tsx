@@ -1,12 +1,16 @@
 import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
+import KPICard from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
 import { trpc } from "@/lib/trpc";
-import { Monitor, Plus, Wifi, WifiOff, Settings } from "lucide-react";
+import { Monitor, Wifi, WifiOff, MapPin, User, Server, Cloud } from "lucide-react";
 
 export default function Arbeitsplaetze() {
   const { isEditMode } = useEditMode();
   
   const { data: workspaces = [] } = trpc.workspaces.list.useQuery();
+  
+  const onlineCount = workspaces.filter(w => w.status === 'online').length;
+  const offlineCount = workspaces.filter(w => w.status === 'offline').length;
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -16,100 +20,126 @@ export default function Arbeitsplaetze() {
       default: return 'bg-gray-500';
     }
   };
+  
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'physical': return <Monitor className="w-6 h-6 text-[oklch(0.7_0.18_50)]" />;
+      case 'virtual': return <Cloud className="w-6 h-6 text-blue-400" />;
+      case 'server': return <Server className="w-6 h-6 text-purple-400" />;
+      default: return <Monitor className="w-6 h-6 text-[oklch(0.7_0.18_50)]" />;
+    }
+  };
+  
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'physical': return 'Physisch';
+      case 'virtual': return 'Virtuell';
+      case 'server': return 'Server';
+      default: return type;
+    }
+  };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header with KPIs */}
+        <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Arbeitsplätze</h1>
-            <p className="text-white/50 mt-1">Installationen und Verbindungen</p>
+            <h1 className="text-3xl font-bold text-white tracking-tight">Arbeitsplätze</h1>
+            <p className="text-white/50 mt-1.5">Installationen und Verbindungen</p>
           </div>
           
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[oklch(0.55_0.15_45)] text-white hover:bg-[oklch(0.6_0.17_45)] transition-colors">
-            <Plus className="w-4 h-4" />
-            Arbeitsplatz hinzufügen
-          </button>
+          <div className="flex gap-4">
+            <KPICard 
+              value={workspaces.length} 
+              label="Gesamt" 
+              icon={<Monitor className="w-5 h-5" />} 
+            />
+            <KPICard 
+              value={onlineCount} 
+              label="Online" 
+              icon={<Wifi className="w-5 h-5" />} 
+            />
+            <KPICard 
+              value={offlineCount} 
+              label="Offline" 
+              icon={<WifiOff className="w-5 h-5" />} 
+            />
+          </div>
         </div>
 
         {/* Workspaces Grid */}
-        <div className="grid grid-cols-3 gap-4">
-          {workspaces.length === 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {workspaces.map((workspace) => (
             <ModuleCard 
-              className="col-span-3" 
-              icon={<Monitor className="w-4 h-4" />}
+              key={workspace.id}
               isEditable={isEditMode}
             >
-              <div className="text-center py-12">
-                <Monitor className="w-16 h-16 mx-auto mb-4 opacity-20 text-white" />
-                <h3 className="text-lg font-medium text-white/80 mb-2">Keine Arbeitsplätze</h3>
-                <p className="text-white/50 mb-4">Verbinden Sie Ihren ersten Arbeitsplatz</p>
-                <button className="px-4 py-2 rounded-lg bg-[oklch(0.55_0.15_45/30%)] text-white/70 hover:bg-[oklch(0.55_0.15_45/50%)] transition-colors">
-                  Arbeitsplatz verbinden
-                </button>
-              </div>
-            </ModuleCard>
-          ) : (
-            workspaces.map((workspace) => (
-              <ModuleCard 
-                key={workspace.id}
-                isEditable={isEditMode}
-              >
-                <div className="space-y-4">
-                  {/* Header */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-xl bg-[oklch(0.25_0.04_50/50%)]">
-                        <Monitor className="w-6 h-6 text-[oklch(0.7_0.18_50)]" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-white">{workspace.name}</h3>
-                        <p className="text-sm text-white/50">{workspace.type}</p>
-                      </div>
+              <div className="space-y-4">
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-xl bg-[oklch(0.25_0.04_50/50%)]">
+                      {getTypeIcon(workspace.type)}
                     </div>
-                    <div className={`w-2 h-2 rounded-full ${getStatusColor(workspace.status)}`} />
+                    <div>
+                      <h3 className="font-medium text-white">{workspace.name}</h3>
+                      <p className="text-sm text-white/50">{getTypeLabel(workspace.type)}</p>
+                    </div>
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${getStatusColor(workspace.status)}`} />
+                </div>
+                
+                {/* Details */}
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/50 flex items-center gap-2">
+                      {workspace.status === 'online' ? (
+                        <Wifi className="w-4 h-4" />
+                      ) : (
+                        <WifiOff className="w-4 h-4" />
+                      )}
+                      Status
+                    </span>
+                    <span className={`font-medium ${
+                      workspace.status === 'online' ? 'text-green-400' : 'text-white/60'
+                    }`}>
+                      {workspace.status === 'online' ? 'Online' : 'Offline'}
+                    </span>
                   </div>
                   
-                  {/* Details */}
-                  <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/50 flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      Standort
+                    </span>
+                    <span className="text-white/80">{workspace.location}</span>
+                  </div>
+                  
+                  {workspace.agent && (
                     <div className="flex items-center justify-between">
-                      <span className="text-white/50">Status</span>
-                      <span className="text-white/80 flex items-center gap-1">
-                        {workspace.status === 'online' ? (
-                          <><Wifi className="w-3 h-3" /> Online</>
-                        ) : (
-                          <><WifiOff className="w-3 h-3" /> Offline</>
-                        )}
+                      <span className="text-white/50 flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Agent
+                      </span>
+                      <span className="text-white/80 flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          workspace.agent.status === 'active' ? 'bg-green-500' : 
+                          workspace.agent.status === 'busy' ? 'bg-yellow-500' : 'bg-gray-500'
+                        }`} />
+                        {workspace.agent.name}
                       </span>
                     </div>
-                    {workspace.ipAddress && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-white/50">IP</span>
-                        <span className="text-white/80 font-mono text-xs">{workspace.ipAddress}</span>
-                      </div>
-                    )}
-                    {workspace.lastActiveAt && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-white/50">Zuletzt gesehen</span>
-                        <span className="text-white/80">
-                          {new Date(workspace.lastActiveAt).toLocaleDateString('de-DE')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  )}
                   
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-2 border-t border-[oklch(0.5_0.12_45/20%)]">
-                    <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[oklch(0.25_0.04_50/50%)] text-white/70 hover:bg-[oklch(0.3_0.05_50/60%)] transition-colors">
-                      <Settings className="w-4 h-4" />
-                      Konfigurieren
-                    </button>
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/50">ID</span>
+                    <span className="text-white/60 font-mono text-xs">{workspace.workspaceId}</span>
                   </div>
                 </div>
-              </ModuleCard>
-            ))
-          )}
+              </div>
+            </ModuleCard>
+          ))}
         </div>
       </div>
     </DashboardLayout>

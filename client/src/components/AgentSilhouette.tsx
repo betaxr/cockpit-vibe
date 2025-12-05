@@ -83,13 +83,7 @@ export default function AgentSilhouette({
         />
       </svg>
       
-      {/* Percentage label */}
-      <div 
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center"
-        style={{ color: fillColor }}
-      >
-        <span className="text-2xl font-bold">{Math.round(clampedUtilization)}%</span>
-      </div>
+
     </div>
   );
 }
