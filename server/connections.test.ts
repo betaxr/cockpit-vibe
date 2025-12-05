@@ -104,7 +104,7 @@ describe("connections router", () => {
   });
 
   describe("input validation", () => {
-    it("validates port range", async () => {
+    it("validates port range - too high", async () => {
       const ctx = createAdminContext();
       const caller = appRouter.createCaller(ctx);
 
@@ -113,12 +113,26 @@ describe("connections router", () => {
           name: "Test DB",
           dbType: "mysql",
           host: "localhost",
-          port: 99999, // Invalid port
+          port: 99999, // Invalid port - too high
         })
       ).rejects.toThrow();
     });
 
-    it("validates required fields", async () => {
+    it("validates port range - too low", async () => {
+      const ctx = createAdminContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.connections.create({
+          name: "Test DB",
+          dbType: "mysql",
+          host: "localhost",
+          port: 0, // Invalid port - too low
+        })
+      ).rejects.toThrow();
+    });
+
+    it("validates required fields - empty name", async () => {
       const ctx = createAdminContext();
       const caller = appRouter.createCaller(ctx);
 
@@ -127,6 +141,20 @@ describe("connections router", () => {
           name: "", // Empty name
           dbType: "mysql",
           host: "localhost",
+          port: 3306,
+        })
+      ).rejects.toThrow();
+    });
+
+    it("validates required fields - empty host", async () => {
+      const ctx = createAdminContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.connections.create({
+          name: "Test DB",
+          dbType: "mysql",
+          host: "", // Empty host
           port: 3306,
         })
       ).rejects.toThrow();
@@ -143,6 +171,110 @@ describe("connections router", () => {
           host: "localhost",
           port: 3306,
         })
+      ).rejects.toThrow();
+    });
+
+    it("accepts valid postgres connection", async () => {
+      const ctx = createAdminContext();
+      const caller = appRouter.createCaller(ctx);
+
+      // This should not throw for valid input
+      const result = await caller.connections.create({
+        name: "Postgres Test",
+        dbType: "postgres",
+        host: "db.example.com",
+        port: 5432,
+        database: "testdb",
+        username: "admin",
+        password: "secret123",
+        sslEnabled: true,
+      });
+
+      expect(result).toHaveProperty("id");
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts valid mongodb connection", async () => {
+      const ctx = createAdminContext();
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.connections.create({
+        name: "MongoDB Test",
+        dbType: "mongodb",
+        host: "mongo.example.com",
+        port: 27017,
+        database: "testdb",
+      });
+
+      expect(result).toHaveProperty("id");
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts valid redis connection", async () => {
+      const ctx = createAdminContext();
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.connections.create({
+        name: "Redis Test",
+        dbType: "redis",
+        host: "redis.example.com",
+        port: 6379,
+      });
+
+      expect(result).toHaveProperty("id");
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("update operations", () => {
+    it("denies update for non-admin users", async () => {
+      const ctx = createUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.connections.update({
+          id: 1,
+          name: "Updated Name",
+        })
+      ).rejects.toThrow("Admin access required");
+    });
+
+    it("denies getById for non-admin users", async () => {
+      const ctx = createUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.connections.getById({ id: 1 })
+      ).rejects.toThrow("Admin access required");
+    });
+
+    it("denies logs access for non-admin users", async () => {
+      const ctx = createUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.connections.logs({ connectionId: 1 })
+      ).rejects.toThrow("Admin access required");
+    });
+  });
+
+  describe("connection logs", () => {
+    it("allows admin to fetch logs", async () => {
+      const ctx = createAdminContext();
+      const caller = appRouter.createCaller(ctx);
+
+      // This should return an array (empty or with logs)
+      const result = await caller.connections.logs({ connectionId: 1, limit: 10 });
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it("validates limit parameter", async () => {
+      const ctx = createAdminContext();
+      const caller = appRouter.createCaller(ctx);
+
+      // Limit too high should throw
+      await expect(
+        caller.connections.logs({ connectionId: 1, limit: 200 })
       ).rejects.toThrow();
     });
   });

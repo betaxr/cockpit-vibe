@@ -7,12 +7,14 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import DashboardLayout from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Connections from "./pages/Connections";
+import ModularDashboard from "./pages/ModularDashboard";
 
 function Router() {
   return (
     <DashboardLayout>
       <Switch>
         <Route path="/" component={Dashboard} />
+        <Route path="/modular" component={ModularDashboard} />
         <Route path="/connections" component={Connections} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
@@ -30,7 +32,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="light"
+        defaultTheme="dark"
         // switchable
       >
         <TooltipProvider>

@@ -20,3 +20,12 @@
 ## Testing
 - [x] Unit tests for database connection procedures
 - [x] Test for admin access control
+
+## New Features - Modular Drag & Drop Design
+- [x] Dark/orange theme based on reference image
+- [x] Glassmorphism effect for modules
+- [x] Gradient background (dark to orange glow)
+- [x] Drag-and-drop functionality for dashboard modules
+- [x] Resizable module panels
+- [x] Module position persistence
+- [x] Extended unit tests for new features (19 tests passing)
