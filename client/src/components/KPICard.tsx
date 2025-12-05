@@ -1,74 +1,19 @@
-/**
- * @fileoverview KPI Card Components
- * 
- * This module provides card components for displaying Key Performance Indicators
- * (KPIs) in the dashboard. Cards feature glassmorphism styling with orange accents
- * and support both single and bundled KPI displays.
- * 
- * **Design Features:**
- * - Glassmorphism background with gradient
- * - Orange-tinted borders with hover effects
- * - Support for bundled KPIs (e.g., Wertschöpfung + Zeitersparnis)
- * - Responsive sizing (sm, md, lg)
- * - Optional icon display with low opacity
- * 
- * @module components/KPICard
- * @author Cockpit Vibe Team
- * @version 1.0.0
- */
-
 import { ReactNode } from "react";
 
-/**
- * Props for the KPICard component
- */
 interface KPICardProps {
-  /** Primary value to display (number or formatted string) */
   value: string | number;
-  /** Label describing the KPI */
   label: string;
-  /** Unit suffix (e.g., "€", "h", "%") */
   suffix?: string;
-  /** Optional icon element */
   icon?: ReactNode;
-  /** Visual variant: default (with border), compact, or secondary (no border) */
   variant?: "default" | "compact" | "secondary";
-  /** Size preset affecting padding and font sizes */
   size?: "sm" | "md" | "lg";
-  /** Secondary value for bundled KPIs */
+  // For bundled KPIs (e.g., Wertschöpfung + Zeitersparnis)
   secondaryValue?: string | number;
-  /** Unit suffix for secondary value */
   secondarySuffix?: string;
-  /** Label for secondary value */
   secondaryLabel?: string;
-  /** Additional CSS classes */
   className?: string;
 }
 
-/**
- * KPICard Component
- * 
- * Displays a single KPI or bundled KPIs in a glassmorphism-styled card.
- * Supports multiple sizes and variants for different use cases.
- * 
- * @param props - Component properties
- * @returns JSX element containing the KPI card
- * 
- * @example
- * // Single KPI
- * <KPICard value={45833} suffix="€" label="Wertschöpfung" size="lg" />
- * 
- * @example
- * // Bundled KPIs (Wertschöpfung + Zeitersparnis)
- * <KPICard
- *   value={45833}
- *   suffix="€"
- *   label="Wertschöpfung"
- *   secondaryValue={699}
- *   secondarySuffix="h"
- *   secondaryLabel="Zeitersparnis"
- * />
- */
 export default function KPICard({
   value,
   label,
@@ -84,7 +29,7 @@ export default function KPICard({
   const isSecondary = variant === "secondary";
   const hasBundledKPI = secondaryValue !== undefined;
   
-  // Size-based styling classes
+  // Size-based classes
   const sizeClasses = {
     sm: {
       padding: "p-3",
@@ -126,24 +71,24 @@ export default function KPICard({
         ${className}
       `}
     >
-      {/* Background glow effect (subtle gradient overlay) */}
+      {/* Background glow effect - subtle */}
       {!isSecondary && (
         <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.4_0.12_45/5%)] to-transparent pointer-events-none" />
       )}
       
-      {/* Icon positioned in top-right with low opacity */}
+      {/* Icon - minimalistic with low opacity */}
       {icon && (
         <div className="absolute top-2.5 right-2.5 opacity-15 text-white">
           {icon}
         </div>
       )}
 
-      {/* Main content */}
+      {/* Content */}
       <div className="relative z-10">
         {hasBundledKPI ? (
-          // Bundled KPI layout: two values side by side with divider
+          // Bundled KPI layout (side by side)
           <div className="flex items-start gap-4">
-            {/* Primary KPI */}
+            {/* Primary value */}
             <div>
               <div className="flex items-baseline gap-0.5">
                 <span className={`font-semibold tracking-tight text-white ${s.value}`}>
@@ -160,7 +105,7 @@ export default function KPICard({
               </p>
             </div>
             
-            {/* Secondary KPI with left border divider */}
+            {/* Secondary value */}
             <div className="border-l border-[oklch(0.5_0.12_45/20%)] pl-4">
               <div className="flex items-baseline gap-0.5">
                 <span className={`font-semibold tracking-tight text-white/80 ${sizeClasses.sm.value}`}>
@@ -200,41 +145,16 @@ export default function KPICard({
   );
 }
 
-/**
- * Props for the MultiKPICard component
- */
+// Multi-KPI Card for side-by-side display
 interface MultiKPICardProps {
-  /** Array of KPI items to display */
   items: Array<{
-    /** Value to display */
     value: string | number;
-    /** Label describing the KPI */
     label: string;
-    /** Unit suffix */
     suffix?: string;
   }>;
-  /** Additional CSS classes */
   className?: string;
 }
 
-/**
- * MultiKPICard Component
- * 
- * Displays multiple KPIs in a single card with dividers between them.
- * Useful for showing related metrics together.
- * 
- * @param props - Component properties
- * @returns JSX element containing multiple KPIs
- * 
- * @example
- * <MultiKPICard
- *   items={[
- *     { value: 8, label: "Prozesse" },
- *     { value: 45833, suffix: "€", label: "Wertschöpfung" },
- *     { value: 699, suffix: "h", label: "Zeitersparnis" }
- *   ]}
- * />
- */
 export function MultiKPICard({ items, className = "" }: MultiKPICardProps) {
   return (
     <div
@@ -248,10 +168,8 @@ export function MultiKPICard({ items, className = "" }: MultiKPICardProps) {
         ${className}
       `}
     >
-      {/* Background glow effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.4_0.12_45/5%)] to-transparent pointer-events-none" />
       
-      {/* KPI items with dividers */}
       <div className="relative z-10 flex divide-x divide-[oklch(0.5_0.12_45/20%)]">
         {items.map((item, index) => (
           <div key={index} className={`flex-1 ${index > 0 ? "pl-4" : ""} ${index < items.length - 1 ? "pr-4" : ""}`}>
