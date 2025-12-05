@@ -1,1 +1,0 @@
-ALTER TABLE `processes` ADD `lifecycleStatus` enum('idle','scheduled','testing','semi_automated','automated') DEFAULT 'idle' NOT NULL;

@@ -175,23 +175,3 @@
 
 ### Testing
 - [x] 21 unit tests passing
-
-## Process Status Color System & Agent Detail Fix
-
-### Process Status Colors
-- [x] Restkapazitäten: Transparent Grau-Schwarz (#1a1a1a)
-- [x] Geplante Prozesse: Grauer Ton (#4a4a4a)
-- [x] Neue Test Prozesse: Weiß (#ffffff)
-- [x] Teilautomatisierte Prozesse: Hell-Orange (#f59e0b)
-- [x] Reguläre Auslastung: Neon-Orange (#f97316)
-
-### Silhouette Legend
-- [x] Add color-coded legend next to silhouette (ProcessLegend component)
-- [x] Show process type explanations on hover
-
-### Agent Detail Page Fixes
-- [x] Add MaxWidth (max-w-5xl) to agent detail page
-- [x] Add bundled KPI cards to agent detail page header
-- [x] Ensure consistent design with other pages
-- [x] FullBodyAgent with multi-color segments based on process status
-- [x] 21 unit tests passing

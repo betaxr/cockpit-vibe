@@ -1,8 +1,7 @@
 import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
-import KPICard from "@/components/KPICard";
+import KPICard, { MultiKPICard } from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
-import { FullBodyAgent, ProcessSegment } from "@/components/FullBodyAgent";
-import { ProcessLegend } from "@/components/ProcessLegend";
+import AgentSilhouette from "@/components/AgentSilhouette";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Monitor, ChevronLeft, ChevronRight, Zap, TrendingUp } from "lucide-react";
 import { useLocation, useParams } from "wouter";
@@ -14,19 +13,22 @@ function MiniCalendar({ selectedDate, onDateChange }: { selectedDate: Date; onDa
   
   const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
-  const adjustedFirstDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+  const adjustedFirstDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1; // Monday start
   
   const days = [];
   const prevMonthDays = new Date(viewDate.getFullYear(), viewDate.getMonth(), 0).getDate();
   
+  // Previous month days
   for (let i = adjustedFirstDay - 1; i >= 0; i--) {
     days.push({ day: prevMonthDays - i, isCurrentMonth: false });
   }
   
+  // Current month days
   for (let i = 1; i <= daysInMonth; i++) {
     days.push({ day: i, isCurrentMonth: true });
   }
   
+  // Next month days
   const remainingDays = 42 - days.length;
   for (let i = 1; i <= remainingDays; i++) {
     days.push({ day: i, isCurrentMonth: false });
@@ -37,6 +39,7 @@ function MiniCalendar({ selectedDate, onDateChange }: { selectedDate: Date; onDa
 
   return (
     <div className="space-y-4">
+      {/* Month Navigation */}
       <div className="flex items-center justify-between">
         <button 
           onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
@@ -55,12 +58,14 @@ function MiniCalendar({ selectedDate, onDateChange }: { selectedDate: Date; onDa
         </button>
       </div>
       
+      {/* Day Headers */}
       <div className="grid grid-cols-7 gap-1 text-center">
         {dayNames.map(day => (
           <div key={day} className="text-xs text-white/40 py-1.5 font-medium">{day}</div>
         ))}
       </div>
       
+      {/* Days Grid */}
       <div className="grid grid-cols-7 gap-1">
         {days.map((d, i) => {
           const isSelected = d.isCurrentMonth && 
@@ -96,24 +101,13 @@ function MiniCalendar({ selectedDate, onDateChange }: { selectedDate: Date; onDa
   );
 }
 
-// Schedule Timeline Component with Process Status Colors
-function ScheduleTimeline({ entries }: { entries: Array<{ title: string; startHour: number; endHour: number; lifecycleStatus?: string }> }) {
+// Schedule Timeline Component
+function ScheduleTimeline({ entries }: { entries: Array<{ title: string; startHour: number; endHour: number; color?: string }> }) {
   const hours = Array.from({ length: 24 }, (_, i) => i);
-  
-  // Get color based on lifecycle status
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'idle': return '#1a1a1a';
-      case 'scheduled': return '#4a4a4a';
-      case 'testing': return '#ffffff';
-      case 'semi_automated': return '#f59e0b';
-      case 'automated': 
-      default: return '#f97316';
-    }
-  };
   
   return (
     <div className="flex gap-6">
+      {/* Time Labels */}
       <div className="flex flex-col text-right text-xs text-white/40 w-14 shrink-0">
         {hours.map(hour => (
           <div key={hour} className="h-7 flex items-center justify-end pr-3 font-mono">
@@ -122,25 +116,29 @@ function ScheduleTimeline({ entries }: { entries: Array<{ title: string; startHo
         ))}
       </div>
       
+      {/* Timeline */}
       <div className="flex-1 relative">
+        {/* Hour lines */}
         {hours.map(hour => (
-          <div key={hour} className="h-7 border-t border-[oklch(0.5_0.12_45/10%)]" />
+          <div 
+            key={hour} 
+            className="h-7 border-t border-[oklch(0.5_0.12_45/10%)]"
+          />
         ))}
         
+        {/* Entries */}
         {entries.map((entry, i) => {
-          const top = entry.startHour * 28;
+          const top = entry.startHour * 28; // 28px per hour
           const height = (entry.endHour - entry.startHour) * 28;
-          const bgColor = getStatusColor(entry.lifecycleStatus);
-          const isLight = entry.lifecycleStatus === 'testing';
           
           return (
             <div
               key={i}
-              className={`absolute left-0 right-4 rounded-xl px-3 py-1.5 text-sm overflow-hidden shadow-lg ${isLight ? 'text-gray-800' : 'text-white/90'}`}
+              className="absolute left-0 right-4 rounded-xl px-3 py-1.5 text-sm text-white/90 overflow-hidden shadow-lg"
               style={{
                 top: `${top}px`,
                 height: `${height}px`,
-                backgroundColor: bgColor,
+                backgroundColor: entry.color || 'oklch(0.55 0.15 45)',
               }}
             >
               <span className="font-medium">{entry.title}</span>
@@ -168,69 +166,25 @@ export default function AgentDetail() {
   }, { enabled: agentId > 0 });
   const { data: processes = [] } = trpc.agents.processes.useQuery({ agentId }, { enabled: agentId > 0 });
 
-  // Calculate agent stats and process segments for silhouette
-  const { agentStats, processSegments } = useMemo(() => {
+  // Calculate agent stats
+  const agentStats = useMemo(() => {
     const completedProcesses = processes.filter(p => p.status === 'completed');
     const totalValue = completedProcesses.reduce((sum, p) => sum + (p.valueGenerated || 0), 0) / 100;
     const totalTimeSaved = completedProcesses.reduce((sum, p) => sum + (p.timeSavedMinutes || 0), 0) / 60;
     
-    // Calculate process segments for silhouette visualization
-    const segments: ProcessSegment[] = [];
-    const totalProcesses = processes.length || 1;
-    
-    // Count processes by lifecycle status
-    const statusCounts: Record<string, number> = {
-      idle: 0,
-      scheduled: 0,
-      testing: 0,
-      semi_automated: 0,
-      automated: 0,
-    };
-    
-    processes.forEach(p => {
-      const status = (p as any).lifecycleStatus || 'automated';
-      if (statusCounts[status] !== undefined) {
-        statusCounts[status]++;
-      }
-    });
-    
-    // Convert to percentages (bottom to top: idle -> automated)
-    const order: Array<'idle' | 'scheduled' | 'testing' | 'semi_automated' | 'automated'> = 
-      ['idle', 'scheduled', 'testing', 'semi_automated', 'automated'];
-    
-    order.forEach(status => {
-      const percentage = (statusCounts[status] / totalProcesses) * 100;
-      if (percentage > 0) {
-        segments.push({ status, percentage });
-      }
-    });
-    
-    // Default if no segments
-    if (segments.length === 0) {
-      segments.push({ status: 'automated', percentage: 60 });
-      segments.push({ status: 'semi_automated', percentage: 20 });
-      segments.push({ status: 'scheduled', percentage: 10 });
-      segments.push({ status: 'idle', percentage: 10 });
-    }
-    
     return {
-      agentStats: {
-        processCount: processes.length || 8,
-        valueGenerated: Math.round(totalValue) || 45833,
-        timeSaved: Math.round(totalTimeSaved) || 699,
-        utilization: agent?.status === 'active' || agent?.status === 'busy' ? 98 : 0,
-      },
-      processSegments: segments,
+      processCount: processes.length,
+      valueGenerated: Math.round(totalValue),
+      timeSaved: Math.round(totalTimeSaved),
+      utilization: agent?.status === 'active' || agent?.status === 'busy' ? 92 : 0,
     };
   }, [processes, agent]);
 
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="max-w-5xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-pulse text-white/50">Laden...</div>
-          </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-pulse text-white/50">Laden...</div>
         </div>
       </DashboardLayout>
     );
@@ -239,7 +193,7 @@ export default function AgentDetail() {
   if (!agent) {
     return (
       <DashboardLayout>
-        <div className="max-w-5xl mx-auto px-4 py-8 text-center">
+        <div className="text-center py-12">
           <p className="text-white/50">Agent nicht gefunden</p>
           <button 
             onClick={() => setLocation("/")}
@@ -254,10 +208,9 @@ export default function AgentDetail() {
 
   return (
     <DashboardLayout>
-      {/* MaxWidth Container */}
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-        {/* Header with KPIs */}
-        <header className="flex items-start justify-between">
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex items-start justify-between">
           <div className="flex items-center gap-5">
             <button 
               onClick={() => setLocation("/")}
@@ -266,8 +219,8 @@ export default function AgentDetail() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-3xl font-semibold text-white tracking-tight">Einhorn Apotheke</h1>
-              <p className="text-white/40 mt-1 text-sm">
+              <h1 className="text-3xl font-bold text-white tracking-tight">Einhorn Apotheke</h1>
+              <p className="text-white/50 mt-1.5 text-lg">
                 {selectedDate.toLocaleDateString('de-DE', { 
                   day: '2-digit', 
                   month: 'long', 
@@ -277,101 +230,83 @@ export default function AgentDetail() {
             </div>
           </div>
           
-          {/* KPI Cards - Bundled */}
-          <div className="flex gap-3">
-            <KPICard 
-              value={agentStats.processCount} 
-              label="Prozesse" 
-              icon={<Zap className="w-4 h-4" />}
-              size="sm"
-            />
-            {/* Bundled KPI: Wertschöpfung + Zeitersparnis */}
-            <KPICard
-              value={agentStats.valueGenerated}
-              suffix="€"
-              label="Wertschöpfung"
-              secondaryValue={agentStats.timeSaved}
-              secondarySuffix="h"
-              secondaryLabel="Zeitersparnis"
-            />
-            <KPICard 
-              value={agentStats.utilization} 
-              suffix="%" 
-              label="Auslastung" 
-              icon={<TrendingUp className="w-4 h-4" />}
-              size="sm"
-            />
+          {/* KPI Cards */}
+          <div className="flex gap-4">
+            <KPICard value={agentStats.processCount} label="Prozesse" icon={<Zap className="w-5 h-5" />} />
+            <KPICard value={agentStats.valueGenerated} suffix="€" label="Wertschöpfung" />
+            <MultiKPICard items={[
+              { value: agentStats.timeSaved, suffix: "h", label: "Zeitersparnis" },
+            ]} />
+            <KPICard value={agentStats.utilization} suffix="%" label="Auslastung" icon={<TrendingUp className="w-5 h-5" />} />
           </div>
-        </header>
+        </div>
 
         {/* Main Content - 3 Column Layout */}
         <div className="grid grid-cols-12 gap-6">
-          {/* Agent Profile Card with Silhouette and Legend */}
+          {/* Agent Profile Card */}
           <ModuleCard className="col-span-4" isEditable={isEditMode}>
-            <div className="flex gap-6">
-              {/* Silhouette - Multi-color based on process status */}
+            <div className="flex gap-8">
+              {/* Silhouette - Bar Chart Style */}
               <div className="shrink-0">
-                <FullBodyAgent 
-                  segments={processSegments}
-                  size="lg"
-                  showHead={true}
+                <AgentSilhouette 
+                  utilization={agentStats.utilization} 
+                  height={360}
+                  fillColor="oklch(0.65 0.18 45)"
+                  bgColor="oklch(0.30 0.06 45 / 40%)"
                 />
               </div>
               
-              {/* Info + Legend */}
-              <div className="flex-1 space-y-5 py-2">
+              {/* Info */}
+              <div className="flex-1 space-y-6 py-2">
                 <div>
                   <h2 className="text-xl font-semibold text-white">{agent.team?.name || "Team Sales"}</h2>
-                  <p className="text-xs text-white/40 mt-1 font-mono">Team-ID: {agent.team?.teamId || agent.agentId}</p>
+                  <p className="text-sm text-white/50 mt-1 font-mono">Team-ID: {agent.team?.teamId || agent.agentId}</p>
                 </div>
                 
-                {/* Process Legend */}
-                <ProcessLegend compact className="mt-4" />
-                
-                <div className="space-y-1 pt-2">
-                  <p className="text-[oklch(0.7_0.18_50)] text-sm font-medium">1 Agent /</p>
-                  <p className="text-[oklch(0.7_0.18_50)] text-sm font-medium">{agent.hoursPerDay} Stunden pro Tag</p>
+                <div className="space-y-1">
+                  <p className="text-[oklch(0.7_0.18_50)] font-medium">1 Agent /</p>
+                  <p className="text-[oklch(0.7_0.18_50)] font-medium">{agent.hoursPerDay} Stunden pro Tag</p>
                 </div>
                 
-                <div className="space-y-2 text-xs pt-2">
-                  <p className="text-white/40 font-medium">Group / Context</p>
-                  <div className="space-y-1">
-                    <p className="text-white/70">Region: <span className="text-white/50">{agent.team?.region || "Marketing EUW"}</span></p>
-                    <p className="text-white/70">Customer type: <span className="text-white/50">{agent.team?.customerType || "Sales, Marketing"}</span></p>
-                    <p className="text-white/70">Project: <span className="text-white/50">{agent.team?.project || "Social Media Management"}</span></p>
+                <div className="space-y-3 text-sm pt-2">
+                  <p className="text-white/50 font-medium">Group / Context</p>
+                  <div className="space-y-1.5">
+                    <p className="text-white/80">Region: <span className="text-white/60">{agent.team?.region || "Marketing EUW"}</span></p>
+                    <p className="text-white/80">Customer type: <span className="text-white/60">{agent.team?.customerType || "Sales, Marketing"}</span></p>
+                    <p className="text-white/80">Project: <span className="text-white/60">{agent.team?.project || "Social Media Management"}</span></p>
                   </div>
                 </div>
                 
                 {/* Workspaces */}
-                <div className="pt-4 border-t border-[oklch(0.5_0.12_45/15%)]">
-                  <p className="text-xs text-white/40 font-medium mb-2">Workspaces:</p>
-                  <div className="space-y-1.5">
+                <div className="pt-5 border-t border-[oklch(0.5_0.12_45/15%)]">
+                  <p className="text-sm text-white/50 font-medium mb-3">Workspaces:</p>
+                  <div className="space-y-2">
                     {workspaces.length === 0 ? (
                       <>
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[oklch(0.25_0.04_50/50%)] border border-[oklch(0.5_0.12_45/25%)]">
-                          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                          <Monitor className="w-3 h-3 text-white/30" />
-                          <span className="text-xs text-white/70">Apotheken PC</span>
+                        <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[oklch(0.25_0.04_50/50%)] border border-[oklch(0.5_0.12_45/25%)]">
+                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                          <Monitor className="w-4 h-4 text-white/40" />
+                          <span className="text-sm text-white/80">Apotheken PC</span>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[oklch(0.2_0.03_50/40%)]">
-                          <div className="w-1.5 h-1.5 rounded-full bg-gray-500" />
-                          <Monitor className="w-3 h-3 text-white/30" />
-                          <span className="text-xs text-white/60">Marketing VM</span>
+                        <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[oklch(0.2_0.03_50/40%)]">
+                          <div className="w-2 h-2 rounded-full bg-gray-500" />
+                          <Monitor className="w-4 h-4 text-white/40" />
+                          <span className="text-sm text-white/70">Marketing VM</span>
                         </div>
                       </>
                     ) : (
                       workspaces.map(ws => (
                         <div 
                           key={ws.id}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl ${
                             ws.status === 'online' 
                               ? 'bg-[oklch(0.25_0.04_50/50%)] border border-[oklch(0.5_0.12_45/25%)]' 
                               : 'bg-[oklch(0.2_0.03_50/40%)]'
                           }`}
                         >
-                          <div className={`w-1.5 h-1.5 rounded-full ${ws.status === 'online' ? 'bg-green-500' : 'bg-gray-500'}`} />
-                          <Monitor className="w-3 h-3 text-white/30" />
-                          <span className="text-xs text-white/70">{ws.name}</span>
+                          <div className={`w-2 h-2 rounded-full ${ws.status === 'online' ? 'bg-green-500' : 'bg-gray-500'}`} />
+                          <Monitor className="w-4 h-4 text-white/40" />
+                          <span className="text-sm text-white/80">{ws.name}</span>
                         </div>
                       ))
                     )}
@@ -391,17 +326,17 @@ export default function AgentDetail() {
                 title: s.title,
                 startHour: s.startHour,
                 endHour: s.endHour,
-                lifecycleStatus: 'automated',
+                color: s.color || undefined,
               })) : [
-                { title: "Processplan X", startHour: 1, endHour: 2, lifecycleStatus: "automated" },
-                { title: "Processplan X", startHour: 3, endHour: 4, lifecycleStatus: "automated" },
-                { title: "Processplan X", startHour: 6, endHour: 8, lifecycleStatus: "semi_automated" },
-                { title: "Processplan X", startHour: 8, endHour: 9, lifecycleStatus: "semi_automated" },
-                { title: "Processplan X", startHour: 10, endHour: 11, lifecycleStatus: "automated" },
-                { title: "Test Process X", startHour: 12, endHour: 13, lifecycleStatus: "testing" },
-                { title: "Process Building", startHour: 14, endHour: 19, lifecycleStatus: "scheduled" },
-                { title: "Processplan X", startHour: 20, endHour: 21, lifecycleStatus: "automated" },
-                { title: "Processplan X", startHour: 22, endHour: 23, lifecycleStatus: "automated" },
+                { title: "Processplan X", startHour: 1, endHour: 2, color: "#c2410c" },
+                { title: "Processplan X", startHour: 3, endHour: 4, color: "#c2410c" },
+                { title: "Processplan X", startHour: 6, endHour: 8, color: "#c2410c" },
+                { title: "Processplan X", startHour: 8, endHour: 9, color: "#a16207" },
+                { title: "Processplan X", startHour: 10, endHour: 11, color: "#a16207" },
+                { title: "Test Process X", startHour: 12, endHour: 13, color: "#78716c" },
+                { title: "Process Building", startHour: 14, endHour: 19, color: "#78716c" },
+                { title: "Processplan X", startHour: 20, endHour: 21, color: "#c2410c" },
+                { title: "Processplan X", startHour: 22, endHour: 23, color: "#c2410c" },
               ]}
             />
           </ModuleCard>
