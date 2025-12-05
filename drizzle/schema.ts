@@ -67,11 +67,18 @@ export type Workspace = typeof workspaces.$inferSelect;
 export type InsertWorkspace = typeof workspaces.$inferInsert;
 
 // Processes table - tasks/processes that agents execute
+// Lifecycle Status Colors:
+// - idle (Restkapazitäten): Transparent Grau-Schwarz
+// - scheduled (Geplante Prozesse): Grauer Ton
+// - testing (Neue Test Prozesse): Weiß
+// - semi_automated (Teilautomatisierte Prozesse): Hell-Orange (Secondary)
+// - automated (Reguläre Auslastung): Neon-Orange (Primary)
 export const processes = mysqlTable("processes", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   status: mysqlEnum("status", ["pending", "running", "completed", "failed", "paused"]).default("pending").notNull(),
+  lifecycleStatus: mysqlEnum("lifecycleStatus", ["idle", "scheduled", "testing", "semi_automated", "automated"]).default("idle").notNull(),
   agentId: int("agentId"),
   workspaceId: int("workspaceId"),
   priority: mysqlEnum("priority", ["low", "medium", "high", "critical"]).default("medium").notNull(),
