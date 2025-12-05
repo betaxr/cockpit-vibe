@@ -1,60 +1,11 @@
 import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
 import KPICard, { MultiKPICard } from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
+import AgentSilhouette from "@/components/AgentSilhouette";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Monitor, ChevronLeft, ChevronRight, Zap, TrendingUp, Clock } from "lucide-react";
+import { ArrowLeft, Monitor, ChevronLeft, ChevronRight, Zap, TrendingUp } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { useState, useMemo } from "react";
-
-// Agent Silhouette SVG Component
-function AgentSilhouette({ color = "#f97316" }: { color?: string }) {
-  return (
-    <svg viewBox="0 0 120 280" className="w-full h-full max-h-[400px]">
-      {/* Head */}
-      <ellipse cx="60" cy="35" rx="25" ry="30" fill={color} opacity="0.9" />
-      {/* Face placeholder */}
-      <ellipse cx="60" cy="28" rx="18" ry="15" fill="rgba(255,255,255,0.15)" />
-      
-      {/* Neck */}
-      <rect x="50" y="60" width="20" height="15" fill={color} opacity="0.85" />
-      
-      {/* Body/Torso */}
-      <path 
-        d="M30 75 L90 75 L95 180 L25 180 Z" 
-        fill={color} 
-        opacity="0.8"
-      />
-      
-      {/* Arms */}
-      <path 
-        d="M30 75 L15 140 L20 145 L40 90" 
-        fill={color} 
-        opacity="0.75"
-      />
-      <path 
-        d="M90 75 L105 140 L100 145 L80 90" 
-        fill={color} 
-        opacity="0.75"
-      />
-      
-      {/* Legs */}
-      <path 
-        d="M35 180 L30 260 L45 260 L50 180" 
-        fill={color} 
-        opacity="0.7"
-      />
-      <path 
-        d="M70 180 L75 260 L90 260 L85 180" 
-        fill={color} 
-        opacity="0.7"
-      />
-      
-      {/* Feet */}
-      <ellipse cx="37" cy="268" rx="12" ry="8" fill="#c2410c" />
-      <ellipse cx="82" cy="268" rx="12" ry="8" fill="#c2410c" />
-    </svg>
-  );
-}
 
 // Calendar Component
 function MiniCalendar({ selectedDate, onDateChange }: { selectedDate: Date; onDateChange: (date: Date) => void }) {
@@ -87,21 +38,21 @@ function MiniCalendar({ selectedDate, onDateChange }: { selectedDate: Date; onDa
   const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Month Navigation */}
       <div className="flex items-center justify-between">
         <button 
           onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
-          className="p-1 rounded hover:bg-[oklch(0.5_0.12_45/20%)] text-white/50 hover:text-white/80"
+          className="p-1.5 rounded-lg hover:bg-[oklch(0.5_0.12_45/20%)] text-white/50 hover:text-white/80 transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-sm font-medium text-white/80">
+        <span className="text-sm font-medium text-white/90 tracking-wide">
           {viewDate.getDate().toString().padStart(2, '0')}. {monthNames[viewDate.getMonth()].toUpperCase()} {viewDate.getFullYear()}
         </span>
         <button 
           onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
-          className="p-1 rounded hover:bg-[oklch(0.5_0.12_45/20%)] text-white/50 hover:text-white/80"
+          className="p-1.5 rounded-lg hover:bg-[oklch(0.5_0.12_45/20%)] text-white/50 hover:text-white/80 transition-colors"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -110,7 +61,7 @@ function MiniCalendar({ selectedDate, onDateChange }: { selectedDate: Date; onDa
       {/* Day Headers */}
       <div className="grid grid-cols-7 gap-1 text-center">
         {dayNames.map(day => (
-          <div key={day} className="text-xs text-white/40 py-1">{day}</div>
+          <div key={day} className="text-xs text-white/40 py-1.5 font-medium">{day}</div>
         ))}
       </div>
       
@@ -135,9 +86,9 @@ function MiniCalendar({ selectedDate, onDateChange }: { selectedDate: Date; onDa
                 }
               }}
               className={`
-                text-xs py-1.5 rounded-lg transition-colors
+                text-sm py-2 rounded-lg transition-all duration-200
                 ${d.isCurrentMonth ? 'text-white/70 hover:bg-[oklch(0.5_0.12_45/20%)]' : 'text-white/20'}
-                ${isSelected ? 'bg-[oklch(0.55_0.15_45)] text-white' : ''}
+                ${isSelected ? 'bg-[oklch(0.55_0.15_45)] text-white font-medium' : ''}
                 ${isToday && !isSelected ? 'ring-1 ring-[oklch(0.55_0.15_45)]' : ''}
               `}
             >
@@ -155,11 +106,11 @@ function ScheduleTimeline({ entries }: { entries: Array<{ title: string; startHo
   const hours = Array.from({ length: 24 }, (_, i) => i);
   
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-6">
       {/* Time Labels */}
-      <div className="flex flex-col text-right text-xs text-white/40 w-12 shrink-0">
+      <div className="flex flex-col text-right text-xs text-white/40 w-14 shrink-0">
         {hours.map(hour => (
-          <div key={hour} className="h-6 flex items-center justify-end pr-2">
+          <div key={hour} className="h-7 flex items-center justify-end pr-3 font-mono">
             {hour.toString().padStart(2, '0')}:00
           </div>
         ))}
@@ -171,19 +122,19 @@ function ScheduleTimeline({ entries }: { entries: Array<{ title: string; startHo
         {hours.map(hour => (
           <div 
             key={hour} 
-            className="h-6 border-t border-[oklch(0.5_0.12_45/15%)]"
+            className="h-7 border-t border-[oklch(0.5_0.12_45/10%)]"
           />
         ))}
         
         {/* Entries */}
         {entries.map((entry, i) => {
-          const top = entry.startHour * 24; // 24px per hour
-          const height = (entry.endHour - entry.startHour) * 24;
+          const top = entry.startHour * 28; // 28px per hour
+          const height = (entry.endHour - entry.startHour) * 28;
           
           return (
             <div
               key={i}
-              className="absolute left-0 right-0 rounded-lg px-2 py-1 text-xs text-white/90 overflow-hidden"
+              className="absolute left-0 right-4 rounded-xl px-3 py-1.5 text-sm text-white/90 overflow-hidden shadow-lg"
               style={{
                 top: `${top}px`,
                 height: `${height}px`,
@@ -257,19 +208,19 @@ export default function AgentDetail() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             <button 
               onClick={() => setLocation("/")}
-              className="p-2 rounded-lg hover:bg-[oklch(0.5_0.12_45/20%)] text-white/50 hover:text-white/80 transition-colors"
+              className="p-2.5 rounded-xl hover:bg-[oklch(0.5_0.12_45/20%)] text-white/50 hover:text-white/80 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
               <h1 className="text-3xl font-bold text-white tracking-tight">Einhorn Apotheke</h1>
-              <p className="text-white/50 mt-1">
+              <p className="text-white/50 mt-1.5 text-lg">
                 {selectedDate.toLocaleDateString('de-DE', { 
                   day: '2-digit', 
                   month: 'long', 
@@ -280,60 +231,65 @@ export default function AgentDetail() {
           </div>
           
           {/* KPI Cards */}
-          <div className="flex gap-3">
-            <KPICard value={agentStats.processCount} label="Prozesse" icon={<Zap className="w-6 h-6" />} />
+          <div className="flex gap-4">
+            <KPICard value={agentStats.processCount} label="Prozesse" icon={<Zap className="w-5 h-5" />} />
             <KPICard value={agentStats.valueGenerated} suffix="€" label="Wertschöpfung" />
             <MultiKPICard items={[
               { value: agentStats.timeSaved, suffix: "h", label: "Zeitersparnis" },
             ]} />
-            <KPICard value={agentStats.utilization} suffix="%" label="Auslastung" icon={<TrendingUp className="w-6 h-6" />} />
+            <KPICard value={agentStats.utilization} suffix="%" label="Auslastung" icon={<TrendingUp className="w-5 h-5" />} />
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-12 gap-4">
+        {/* Main Content - 3 Column Layout */}
+        <div className="grid grid-cols-12 gap-6">
           {/* Agent Profile Card */}
-          <ModuleCard className="col-span-4 row-span-2" isEditable={isEditMode}>
-            <div className="flex gap-6">
-              {/* Silhouette */}
-              <div className="w-32 shrink-0">
-                <AgentSilhouette color={agent.avatarColor || "#f97316"} />
+          <ModuleCard className="col-span-4" isEditable={isEditMode}>
+            <div className="flex gap-8">
+              {/* Silhouette - Bar Chart Style */}
+              <div className="shrink-0">
+                <AgentSilhouette 
+                  utilization={agentStats.utilization} 
+                  height={360}
+                  fillColor="oklch(0.65 0.18 45)"
+                  bgColor="oklch(0.30 0.06 45 / 40%)"
+                />
               </div>
               
               {/* Info */}
-              <div className="flex-1 space-y-4">
+              <div className="flex-1 space-y-6 py-2">
                 <div>
                   <h2 className="text-xl font-semibold text-white">{agent.team?.name || "Team Sales"}</h2>
-                  <p className="text-sm text-white/50">Team-ID: {agent.team?.teamId || agent.agentId}</p>
+                  <p className="text-sm text-white/50 mt-1 font-mono">Team-ID: {agent.team?.teamId || agent.agentId}</p>
                 </div>
                 
                 <div className="space-y-1">
-                  <p className="text-white/80">
-                    <span className="text-[oklch(0.7_0.18_50)]">1 Agent /</span>
-                  </p>
-                  <p className="text-white/80">
-                    <span className="text-[oklch(0.7_0.18_50)]">{agent.hoursPerDay} Stunden pro Tag</span>
-                  </p>
+                  <p className="text-[oklch(0.7_0.18_50)] font-medium">1 Agent /</p>
+                  <p className="text-[oklch(0.7_0.18_50)] font-medium">{agent.hoursPerDay} Stunden pro Tag</p>
                 </div>
                 
-                <div className="space-y-2 text-sm">
-                  <p className="text-white/60">Group / Context</p>
-                  <p className="text-white/80">Region: {agent.team?.region || "Marketing EUW"}</p>
-                  <p className="text-white/80">Customer type: {agent.team?.customerType || "Sales, Marketing"}</p>
-                  <p className="text-white/80">Project: {agent.team?.project || "Social Media Management"}</p>
+                <div className="space-y-3 text-sm pt-2">
+                  <p className="text-white/50 font-medium">Group / Context</p>
+                  <div className="space-y-1.5">
+                    <p className="text-white/80">Region: <span className="text-white/60">{agent.team?.region || "Marketing EUW"}</span></p>
+                    <p className="text-white/80">Customer type: <span className="text-white/60">{agent.team?.customerType || "Sales, Marketing"}</span></p>
+                    <p className="text-white/80">Project: <span className="text-white/60">{agent.team?.project || "Social Media Management"}</span></p>
+                  </div>
                 </div>
                 
                 {/* Workspaces */}
-                <div className="pt-4 border-t border-[oklch(0.5_0.12_45/20%)]">
-                  <p className="text-sm text-white/60 mb-2">Workspaces:</p>
+                <div className="pt-5 border-t border-[oklch(0.5_0.12_45/15%)]">
+                  <p className="text-sm text-white/50 font-medium mb-3">Workspaces:</p>
                   <div className="space-y-2">
                     {workspaces.length === 0 ? (
                       <>
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[oklch(0.25_0.04_50/50%)] border border-[oklch(0.5_0.12_45/30%)]">
+                        <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[oklch(0.25_0.04_50/50%)] border border-[oklch(0.5_0.12_45/25%)]">
+                          <div className="w-2 h-2 rounded-full bg-green-500" />
                           <Monitor className="w-4 h-4 text-white/40" />
-                          <span className="text-sm text-white/70">Apotheken PC</span>
+                          <span className="text-sm text-white/80">Apotheken PC</span>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[oklch(0.2_0.03_50/40%)]">
+                        <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[oklch(0.2_0.03_50/40%)]">
+                          <div className="w-2 h-2 rounded-full bg-gray-500" />
                           <Monitor className="w-4 h-4 text-white/40" />
                           <span className="text-sm text-white/70">Marketing VM</span>
                         </div>
@@ -342,14 +298,15 @@ export default function AgentDetail() {
                       workspaces.map(ws => (
                         <div 
                           key={ws.id}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl ${
                             ws.status === 'online' 
-                              ? 'bg-[oklch(0.25_0.04_50/50%)] border border-[oklch(0.5_0.12_45/30%)]' 
+                              ? 'bg-[oklch(0.25_0.04_50/50%)] border border-[oklch(0.5_0.12_45/25%)]' 
                               : 'bg-[oklch(0.2_0.03_50/40%)]'
                           }`}
                         >
+                          <div className={`w-2 h-2 rounded-full ${ws.status === 'online' ? 'bg-green-500' : 'bg-gray-500'}`} />
                           <Monitor className="w-4 h-4 text-white/40" />
-                          <span className="text-sm text-white/70">{ws.name}</span>
+                          <span className="text-sm text-white/80">{ws.name}</span>
                         </div>
                       ))
                     )}
@@ -361,53 +318,52 @@ export default function AgentDetail() {
 
           {/* Schedule Timeline */}
           <ModuleCard 
-            title="" 
-            className="col-span-4 row-span-2 max-h-[600px] overflow-auto"
+            className="col-span-4 max-h-[650px] overflow-auto"
             isEditable={isEditMode}
-            noPadding
           >
-            <div className="p-4">
-              <ScheduleTimeline 
-                entries={schedule.length > 0 ? schedule.map(s => ({
-                  title: s.title,
-                  startHour: s.startHour,
-                  endHour: s.endHour,
-                  color: s.color || undefined,
-                })) : [
-                  { title: "Processplan X", startHour: 1, endHour: 2, color: "#c2410c" },
-                  { title: "Processplan X", startHour: 3, endHour: 4, color: "#c2410c" },
-                  { title: "Processplan X", startHour: 6, endHour: 8, color: "#c2410c" },
-                  { title: "Processplan X", startHour: 8, endHour: 9, color: "#a16207" },
-                  { title: "Processplan X", startHour: 10, endHour: 11, color: "#a16207" },
-                  { title: "Test Process X", startHour: 12, endHour: 13, color: "#78716c" },
-                  { title: "Process Building", startHour: 14, endHour: 19, color: "#78716c" },
-                  { title: "Processplan X", startHour: 20, endHour: 21, color: "#c2410c" },
-                  { title: "Processplan X", startHour: 22, endHour: 23, color: "#c2410c" },
-                ]}
-              />
-            </div>
+            <ScheduleTimeline 
+              entries={schedule.length > 0 ? schedule.map(s => ({
+                title: s.title,
+                startHour: s.startHour,
+                endHour: s.endHour,
+                color: s.color || undefined,
+              })) : [
+                { title: "Processplan X", startHour: 1, endHour: 2, color: "#c2410c" },
+                { title: "Processplan X", startHour: 3, endHour: 4, color: "#c2410c" },
+                { title: "Processplan X", startHour: 6, endHour: 8, color: "#c2410c" },
+                { title: "Processplan X", startHour: 8, endHour: 9, color: "#a16207" },
+                { title: "Processplan X", startHour: 10, endHour: 11, color: "#a16207" },
+                { title: "Test Process X", startHour: 12, endHour: 13, color: "#78716c" },
+                { title: "Process Building", startHour: 14, endHour: 19, color: "#78716c" },
+                { title: "Processplan X", startHour: 20, endHour: 21, color: "#c2410c" },
+                { title: "Processplan X", startHour: 22, endHour: 23, color: "#c2410c" },
+              ]}
+            />
           </ModuleCard>
 
-          {/* Calendar */}
-          <ModuleCard className="col-span-4" isEditable={isEditMode}>
-            <MiniCalendar selectedDate={selectedDate} onDateChange={setSelectedDate} />
-            
-            <button 
-              onClick={() => setLocation("/wochenplan")}
-              className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-[oklch(0.5_0.12_45/40%)] text-white/70 hover:bg-[oklch(0.5_0.12_45/20%)] transition-colors"
-            >
-              Weekly View
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </ModuleCard>
+          {/* Right Column - Calendar & Skills */}
+          <div className="col-span-4 space-y-6">
+            {/* Calendar */}
+            <ModuleCard isEditable={isEditMode}>
+              <MiniCalendar selectedDate={selectedDate} onDateChange={setSelectedDate} />
+              
+              <button 
+                onClick={() => setLocation("/wochenplan")}
+                className="mt-5 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[oklch(0.5_0.12_45/30%)] text-white/70 hover:bg-[oklch(0.5_0.12_45/15%)] transition-all duration-200"
+              >
+                <span className="font-medium">Weekly View</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </ModuleCard>
 
-          {/* TOP Skills */}
-          <ModuleCard className="col-span-4" isEditable={isEditMode}>
-            <div className="text-center py-8">
-              <h3 className="text-lg font-semibold text-white mb-2">TOP Skills of the Month</h3>
-              <p className="text-[oklch(0.7_0.18_50)]">coming soon</p>
-            </div>
-          </ModuleCard>
+            {/* TOP Skills */}
+            <ModuleCard isEditable={isEditMode}>
+              <div className="text-center py-10">
+                <h3 className="text-lg font-semibold text-white mb-3">TOP Skills of the Month</h3>
+                <p className="text-[oklch(0.7_0.18_50)] text-sm">coming soon</p>
+              </div>
+            </ModuleCard>
+          </div>
         </div>
       </div>
     </DashboardLayout>
