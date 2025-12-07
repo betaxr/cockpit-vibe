@@ -223,4 +223,4 @@
 ### Dokumentation
 - [x] Aktualisiere README.md
 - [x] Aktualisiere ENV_SETUP.md
-- [ ] Push zu GitHub
+- [x] Push zu GitHub (https://github.com/betaxr/cockpit-vibe)
