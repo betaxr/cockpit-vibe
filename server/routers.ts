@@ -1,4 +1,16 @@
 import { COOKIE_NAME } from "@shared/const";
+/**
+ * @fileoverview Main tRPC Router Configuration for Cockpit Vibe
+ * 
+ * This file defines all API endpoints for the Agent Management System.
+ * The system manages teams of AI agents, their processes, schedules,
+ * and workspaces in an enterprise automation context.
+ * 
+ * @module server/routers
+ * @author Cockpit Vibe Team
+ * @version 1.0.0
+ */
+
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";

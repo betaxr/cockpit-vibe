@@ -1,4 +1,16 @@
 import { describe, expect, it } from "vitest";
+/**
+ * @fileoverview Unit Tests for Agent Management System
+ * 
+ * This test file covers all tRPC procedures related to the agent management
+ * system including agents, processes, workspaces, cortex, statistics, teams,
+ * and schedules.
+ * 
+ * @module server/agents.test
+ * @author Cockpit Vibe Team
+ * @version 1.0.0
+ */
+
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -125,6 +137,114 @@ describe("stats router", () => {
       expect(result).toHaveProperty("totalValue");
       expect(result).toHaveProperty("totalTimeSaved");
       expect(result).toHaveProperty("avgReliability");
+    });
+  });
+});
+
+// ============================================================================
+// TEAMS ROUTER TESTS
+// ============================================================================
+
+describe("teams router", () => {
+  describe("teams.list", () => {
+    it("returns list of teams for authenticated users", async () => {
+      const ctx = createUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.teams.list();
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it("teams have required properties", async () => {
+      const ctx = createUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.teams.list();
+      const firstTeam = result[0];
+
+      expect(firstTeam).toHaveProperty("name");
+      expect(firstTeam).toHaveProperty("teamId");
+      expect(firstTeam).toHaveProperty("agentCount");
+      expect(firstTeam).toHaveProperty("color");
+    });
+  });
+
+  describe("teams.getById", () => {
+    it("returns team details for valid ID", async () => {
+      const ctx = createUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.teams.getById({ id: 1 });
+
+      expect(result).toBeDefined();
+      expect(result?.name).toBeDefined();
+    });
+
+    it("throws NOT_FOUND for invalid ID", async () => {
+      const ctx = createUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(caller.teams.getById({ id: 99999 })).rejects.toThrow();
+    });
+  });
+});
+
+// ============================================================================
+// SCHEDULE ROUTER TESTS
+// ============================================================================
+
+describe("schedule router", () => {
+  describe("schedule.byAgent", () => {
+    it("returns schedule for a specific agent", async () => {
+      const ctx = createUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.schedule.byAgent({ agentId: 1 });
+
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it("schedule entries have required properties", async () => {
+      const ctx = createUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.schedule.byAgent({ agentId: 1 });
+      
+      if (result.length > 0) {
+        const entry = result[0];
+        expect(entry).toHaveProperty("title");
+        expect(entry).toHaveProperty("startHour");
+        expect(entry).toHaveProperty("endHour");
+        expect(entry).toHaveProperty("color");
+      }
+    });
+  });
+
+  describe("schedule.week", () => {
+    it("returns weekly schedule with 7 days", async () => {
+      const ctx = createUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.schedule.week({ weekStart: "2025-01-01" });
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(7);
+    });
+
+    it("each day has entries array", async () => {
+      const ctx = createUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.schedule.week({ weekStart: "2025-01-01" });
+      
+      result.forEach(day => {
+        expect(day).toHaveProperty("day");
+        expect(day).toHaveProperty("dayIndex");
+        expect(day).toHaveProperty("entries");
+        expect(Array.isArray(day.entries)).toBe(true);
+      });
     });
   });
 });

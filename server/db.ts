@@ -1,4 +1,21 @@
 import { eq, desc } from "drizzle-orm";
+/**
+ * @fileoverview Database Operations for Cockpit Vibe
+ * 
+ * This module provides all database operations using Drizzle ORM.
+ * It handles user management, database connections, teams, agents,
+ * workspaces, processes, schedules, and cortex entries.
+ * 
+ * **Security Features:**
+ * - Password encryption using AES-256-CBC
+ * - Lazy database connection initialization
+ * - Graceful handling when database is unavailable
+ * 
+ * @module server/db
+ * @author Cockpit Vibe Team
+ * @version 1.0.0
+ */
+
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, databaseConnections, connectionLogs, InsertDatabaseConnection, InsertConnectionLog } from "../drizzle/schema";
 import crypto from "crypto";

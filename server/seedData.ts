@@ -1,10 +1,26 @@
 /**
- * Narrative Seed Data for the Agent Management System
+ * @fileoverview Narrative Seed Data for Cockpit Vibe Agent Management System
  * 
- * This file contains realistic mock data representing a pharmacy chain
- * with multiple teams, agents, processes, and workspaces.
+ * This module provides realistic mock data representing a pharmacy chain
+ * ("Einhorn Apotheke") with multiple teams, agents, processes, and workspaces.
  * 
- * Teams are the primary organizational unit - agents are identified by team name.
+ * **Data Structure:**
+ * - Teams: Organizational units (Marketing, Verkauf, Logistik, Support, Production)
+ * - Agents: Team representatives (identified by team name)
+ * - Workspaces: Physical/virtual machines where agents work
+ * - Processes: Automated tasks with success/failure statistics
+ * - Schedule: 24-hour schedule entries linking agents to processes
+ * 
+ * **Color Coding:**
+ * - Marketing: Yellow (#eab308)
+ * - Verkauf: Orange (#f97316)
+ * - Logistik: Green (#22c55e)
+ * - Support: Blue (#3b82f6)
+ * - Production: Pink (#ec4899)
+ * 
+ * @module server/seedData
+ * @author Cockpit Vibe Team
+ * @version 1.0.0
  */
 
 // Teams - Organizational units (each team has 1-5 agents)
