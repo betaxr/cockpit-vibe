@@ -1,6 +1,26 @@
+/**
+ * @fileoverview tRPC Context Creation
+ * 
+ * Creates the context for each tRPC request, including user authentication.
+ * Supports both Manus OAuth and standalone authentication.
+ * 
+ * @module server/_core/context
+ */
+
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
-import { sdk } from "./sdk";
+import { ENV } from "./env";
+
+// Use standalone auth by default, fall back to Manus SDK if OAuth is configured
+const getAuthService = async () => {
+  if (ENV.isStandalone) {
+    const { standaloneAuth } = await import("./standaloneAuth");
+    return standaloneAuth;
+  } else {
+    const { sdk } = await import("./sdk");
+    return sdk;
+  }
+};
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
@@ -14,7 +34,8 @@ export async function createContext(
   let user: User | null = null;
 
   try {
-    user = await sdk.authenticateRequest(opts.req);
+    const authService = await getAuthService();
+    user = await authService.authenticateRequest(opts.req);
   } catch (error) {
     // Authentication is optional for public procedures.
     user = null;

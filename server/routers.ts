@@ -17,7 +17,8 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { upsertUser, getUserByOpenId } from "./db";
-import { sdk } from "./_core/sdk";
+import { standaloneAuth } from "./_core/standaloneAuth";
+import { ENV } from "./_core/env";
 import {
   seedTeams,
   seedAgents,
@@ -66,7 +67,7 @@ export const appRouter = router({
         });
         const user = await getUserByOpenId(testOpenId);
         if (!user) return { success: false, message: 'User creation failed' };
-        const token = await sdk.createSessionToken(user.openId, {
+        const token = await standaloneAuth.createSessionToken(user.openId, {
           name: user.name || 'Test Admin',
           expiresInMs: ONE_YEAR_MS,
         });

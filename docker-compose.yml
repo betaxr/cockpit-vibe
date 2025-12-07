@@ -1,0 +1,54 @@
+# Cockpit Vibe - Docker Compose für lokale Entwicklung
+# 
+# Startet MySQL Datenbank und die Anwendung
+#
+# Verwendung:
+#   docker-compose up -d        # Startet alle Services
+#   docker-compose down         # Stoppt alle Services
+#   docker-compose logs -f app  # Zeigt App-Logs
+
+version: '3.8'
+
+services:
+  # MySQL Datenbank
+  db:
+    image: mysql:8.0
+    container_name: cockpit-vibe-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: cockpit_vibe
+      MYSQL_USER: cockpit
+      MYSQL_PASSWORD: cockpitpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Anwendung (optional - kann auch lokal mit pnpm dev laufen)
+  app:
+    build: .
+    container_name: cockpit-vibe-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://cockpit:cockpitpassword@db:3306/cockpit_vibe
+      JWT_SECRET: your-super-secret-jwt-key-min-32-characters-long
+      NODE_ENV: development
+      STANDALONE_MODE: "true"
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  mysql_data:
