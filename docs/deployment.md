@@ -12,13 +12,30 @@ Goal: keep one codebase/build and support both Windows services (primary) and op
 - Logging: write to `logs/` (rotated by WinSW/nssm) or stdout if run interactively.
 - Config: `.env` for secrets/settings; avoid hardcoded paths and write only under the app directory.
 
+### How to use (WinSW)
+1. Build once: `pnpm build`
+2. Generate WinSW assets: `pnpm prepare:win-service` → outputs to `deploy/win-service/`
+   - Contains `${ServiceName}.xml` (default `CockpitVibe.xml`), `logs/`, and a copied `.env` for reference.
+   - Edit the XML to add missing `<env>` entries (DB secrets, OAuth, etc.).
+3. Download `winsw.exe` (https://github.com/winsw/winsw) and place it next to the XML.
+4. Install/start from `deploy/win-service`:
+   - `.\winsw.exe install`
+   - `.\winsw.exe start`
+   - Stop/remove: `.\winsw.exe stop` / `.\winsw.exe uninstall`
+5. Ensure `node` is on PATH, or regenerate with `-NodePath "C:\\Program Files\\nodejs\\node.exe"` (see `scripts/win-service/prepare-win-service.ps1` params).
+
 ## Docker (optional)
 - Multi-stage Dockerfile that copies build output and runs `node dist/index.js`; Express serves `dist/public`.
 - No container-only assumptions; all config via env vars. Intended for Linux hosts or CI/CD.
 
+### Quick build/run
+- Build image: `pnpm package:docker` (tags `cockpit-vibe`)
+- Run: `docker run -p 3000:3000 --env-file .env cockpit-vibe`
+
 ## Configuration Practices
-- All runtime settings via env vars (dotenv supported already).
-- Ports/host configurable (`PORT`, `HOST`); avoid platform-specific defaults.
+- All runtime settings via env vars (dotenv supported already). Siehe `.env.example`.
+- Ports/host konfigurierbar (`PORT`, `HOST`); kein hardcoding.
+- Datenquellen: `MONGO_URI`/`MONGO_DB`/`TENANT_ID` (primär), optional `DATABASE_URL` (legacy), `COLLECTOR_BASE_URL`/`COLLECTOR_API_KEY`.
 - Keep dependencies pure JS/TS (current stack is fine for Windows).
 
 ## Suggested Scripts/Docs

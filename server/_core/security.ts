@@ -27,7 +27,7 @@ const defaultConfig: RateLimitConfig = {
 
 const authConfig: RateLimitConfig = {
   windowMs: 15 * 60 * 1000,  // 15 minutes
-  maxRequests: 10,  // 10 login attempts per 15 minutes
+  maxRequests: 20,  // relaxed to avoid throttling normal UX
 };
 
 /**

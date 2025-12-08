@@ -69,20 +69,41 @@ pnpm dev
 # Login: admin / admin
 ```
 
-### Option 3: Windows Service
+### Option 3: Windows Service (WinSW)
 
-Siehe [Windows Service Deployment](#windows-service-deployment) weiter unten.
+1) Build & Assets generieren  
+```bash
+pnpm build
+pnpm prepare:win-service
+```
+→ legt unter `deploy/win-service/` eine WinSW-XML, Logs-Ordner und eine kopierte `.env` ab.
+
+2) WinSW bereitstellen  
+`winsw.exe` von https://github.com/winsw/winsw neben die XML legen.
+
+3) Service installieren/starten (im Ordner `deploy/win-service`)  
+```powershell
+.\winsw.exe install
+.\winsw.exe start
+```
+Stop/Remove: `.\winsw.exe stop` / `.\winsw.exe uninstall`  
+Node-Pfad anpassen: `pnpm prepare:win-service -- -NodePath "C:\\Program Files\\nodejs\\node.exe"`
 
 ## Environment Variables
 
 Erstelle eine `.env` Datei im Projektroot:
 
 ```env
-# Erforderlich
-DATABASE_URL=mysql://user:password@localhost:3306/cockpit_vibe
+# Erforderlich (mindestens)
 JWT_SECRET=dein-geheimer-schluessel-mindestens-32-zeichen
+MONGO_URI=mongodb://user:password@localhost:27017
+MONGO_DB=cockpit_vibe
+TENANT_ID=default
 
-# Optional
+# Optional / Legacy
+DATABASE_URL=mysql://user:password@localhost:3306/cockpit_vibe
+COLLECTOR_BASE_URL=http://localhost:4000
+COLLECTOR_API_KEY=
 NODE_ENV=development
 PORT=3000
 STANDALONE_MODE=true
@@ -92,8 +113,10 @@ STANDALONE_MODE=true
 
 | Variable | Beschreibung | Beispiel |
 |----------|--------------|----------|
-| `DATABASE_URL` | MySQL Connection String | `mysql://user:pass@localhost:3306/db` |
 | `JWT_SECRET` | Session-Secret (min. 32 Zeichen) | `openssl rand -base64 32` |
+| `MONGO_URI` | Mongo Connection String | `mongodb://user:pass@localhost:27017` |
+| `MONGO_DB` | Mongo DB Name | `cockpit_vibe` |
+| `TENANT_ID` | Tenant Scope | `default` |
 
 ## Features
 
@@ -157,12 +180,7 @@ server/                 # Backend
 drizzle/
   schema.ts             # Datenbank-Schema
 deploy/                 # Deployment-Konfigurationen
-  windows/              # Windows Service Files
-    cockpit-vibe-service.xml  # WinSW Config
-    install-service.ps1       # Installation
-    start-service.ps1         # Service starten
-    stop-service.ps1          # Service stoppen
-    status-service.ps1        # Status prüfen
+  win-service/          # Generierte WinSW-Configs/Logs (pnpm prepare:win-service)
 docker-compose.yml      # Docker Setup
 Dockerfile              # Container Build
 docs/                   # Dokumentation

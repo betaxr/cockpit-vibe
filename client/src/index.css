@@ -81,20 +81,20 @@
 
   /* Nord-inspired grays (neutral/cool) */
   --gray-50: #f5f7fa;
-  --gray-100: #e8ecf2;
-  --gray-200: #d7dde7;
-  --gray-300: #c3cbd8;
-  --gray-400: #aab4c5;
-  --gray-500: #8e9ab0;
-  --gray-600: #6f7d94;
-  --gray-700: #566378;
-  --gray-800: #3f4a5b;
-  --gray-900: #2d3542;
+  --gray-100: #f4f4f4;
+  --gray-200: #c8c8c8;
+  --gray-300: #c1c1c1;
+  --gray-400: #6c6c6c;
+  --gray-500: #515151;
+  --gray-600: #2f2f2f;
+  --gray-700: #232323;
+  --gray-800: #1a1412;
+  --gray-900: #000000;
 
   /* Status (can be replaced later) */
   --success: #6ba336;
   --warning: var(--secondary-400);
-  --info: #557aa8;
+  --info: #474747;
   --error: #7e2319;
 
   --radius: 0.625rem;
@@ -146,7 +146,7 @@
   --foreground: var(--gray-50);
   --card: var(--gray-800);
   --card-foreground: var(--gray-50);
-  --popover: var(--gray-850, #323b4a);
+  --popover: var(--gray-850, --gray-85);
   --popover-foreground: var(--gray-50);
   --secondary: var(--secondary-300);
   --secondary-foreground: var(--gray-900);

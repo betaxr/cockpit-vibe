@@ -12,6 +12,7 @@ export const ENV = {
   cookieSecret: process.env.JWT_SECRET ?? "",
   databaseUrl: process.env.DATABASE_URL ?? "",
   isProduction: process.env.NODE_ENV === "production",
+  mongoDbName: process.env.MONGO_DB ?? "cockpit_vibe",
   
   // Optional - for Manus OAuth (can be empty for standalone)
   appId: process.env.VITE_APP_ID ?? "standalone",

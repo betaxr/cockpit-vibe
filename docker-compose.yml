@@ -30,6 +30,21 @@ services:
       timeout: 5s
       retries: 5
 
+  # MongoDB für Cockpit-Daten
+  mongo:
+    image: mongo:7
+    container_name: cockpit-vibe-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --eval \"db.adminCommand('ping')\" --quiet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Anwendung
   app:
     build:
@@ -40,14 +55,24 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mongo:
+        condition: service_healthy
     environment:
       DATABASE_URL: mysql://cockpit:cockpitpassword@db:3306/cockpit_vibe
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: cockpit_vibe
+      TENANT_ID: default
+      ENABLE_TEST_LOGIN: "true"
+      SKIP_CSRF: "true"
       JWT_SECRET: your-super-secret-jwt-key-min-32-characters-long
       NODE_ENV: production
       STANDALONE_MODE: "true"
       PORT: "3000"
+      COLLECTOR_BASE_URL: ""
+      COLLECTOR_API_KEY: ""
     ports:
       - "3000:3000"
 
 volumes:
   mysql_data:
+  mongo_data:
