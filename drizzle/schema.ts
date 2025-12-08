@@ -5,6 +5,7 @@ import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, date } from "driz
  */
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).default("default").notNull(),
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -24,6 +25,7 @@ export type InsertUser = typeof users.$inferInsert;
 // Teams table - groups of agents
 export const teams = mysqlTable("teams", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).default("default").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   teamId: varchar("teamId", { length: 64 }).notNull().unique(),
   region: varchar("region", { length: 128 }),
@@ -40,6 +42,7 @@ export type InsertTeam = typeof teams.$inferInsert;
 // Agents table - AI agents or team members
 export const agents = mysqlTable("agents", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).default("default").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   agentId: varchar("agentId", { length: 64 }).notNull().unique(),
   teamId: int("teamId"),
@@ -57,6 +60,7 @@ export type InsertAgent = typeof agents.$inferInsert;
 // Workspaces/Installations table - where agents work
 export const workspaces = mysqlTable("workspaces", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).default("default").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   type: mysqlEnum("type", ["pc", "vm", "server", "cloud"]).default("pc").notNull(),
   status: mysqlEnum("status", ["online", "offline", "maintenance"]).default("offline").notNull(),
@@ -73,6 +77,7 @@ export type InsertWorkspace = typeof workspaces.$inferInsert;
 // Processes table - tasks/processes that agents execute
 export const processes = mysqlTable("processes", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).default("default").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   status: mysqlEnum("status", ["pending", "running", "completed", "failed", "paused"]).default("pending").notNull(),
@@ -94,6 +99,7 @@ export type InsertProcess = typeof processes.$inferInsert;
 // Schedule table - daily schedule entries for agents
 export const scheduleEntries = mysqlTable("schedule_entries", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).default("default").notNull(),
   agentId: int("agentId").notNull(),
   processId: int("processId"),
   title: varchar("title", { length: 255 }).notNull(),
@@ -110,6 +116,7 @@ export type InsertScheduleEntry = typeof scheduleEntries.$inferInsert;
 // Cortex - knowledge base / brain of the system
 export const cortexEntries = mysqlTable("cortex_entries", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).default("default").notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   content: text("content"),
   category: varchar("category", { length: 128 }),
@@ -124,6 +131,7 @@ export type InsertCortexEntry = typeof cortexEntries.$inferInsert;
 // Keep existing database connections for backwards compatibility
 export const databaseConnections = mysqlTable("database_connections", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).default("default").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   dbType: mysqlEnum("dbType", ["mysql", "postgres", "mongodb", "redis", "sqlite"]).notNull(),
   host: varchar("host", { length: 255 }).notNull(),
@@ -145,6 +153,7 @@ export type InsertDatabaseConnection = typeof databaseConnections.$inferInsert;
 
 export const connectionLogs = mysqlTable("connection_logs", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: varchar("tenantId", { length: 64 }).default("default").notNull(),
   connectionId: int("connectionId").notNull(),
   userId: int("userId").notNull(),
   action: mysqlEnum("action", ["connect", "disconnect", "query", "test"]).notNull(),

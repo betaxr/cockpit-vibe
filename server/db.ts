@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 /**
  * @fileoverview Database Operations for Cockpit Vibe
  * 
@@ -23,6 +23,7 @@ import { ENV } from './_core/env';
 
 const TEST_ADMIN_OPEN_ID = "test-admin-user";
 let _db: ReturnType<typeof drizzle> | null = null;
+const defaultTenant = process.env.TENANT_ID ?? "default";
 
 export function isDatabaseConfigured() {
   return Boolean(process.env.DATABASE_URL);
@@ -32,6 +33,7 @@ export function getTestAdminUser(openId: string = TEST_ADMIN_OPEN_ID): User {
   const now = new Date();
   return {
     id: 0,
+    tenantId: defaultTenant,
     openId,
     name: "Test Admin",
     email: "admin@test.local",
@@ -76,6 +78,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   try {
     const values: InsertUser = {
       openId: user.openId,
+      tenantId: user.tenantId ?? defaultTenant,
     };
     const updateSet: Record<string, unknown> = {};
 
@@ -121,7 +124,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 }
 
-export async function getUserByOpenId(openId: string) {
+export async function getUserByOpenId(openId: string, tenantId: string = defaultTenant) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot get user: database not available");
@@ -131,7 +134,11 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(and(eq(users.openId, openId), eq(users.tenantId, tenantId)))
+    .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -164,12 +171,15 @@ function decrypt(text: string): string {
   }
 }
 
-export async function createDatabaseConnection(data: Omit<InsertDatabaseConnection, 'encryptedPassword'> & { password?: string }) {
+export async function createDatabaseConnection(
+  data: Omit<InsertDatabaseConnection, 'encryptedPassword' | 'tenantId'> & { password?: string; tenantId?: string }
+) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
   const values: InsertDatabaseConnection = {
     ...data,
+    tenantId: data.tenantId ?? defaultTenant,
     encryptedPassword: data.password ? encrypt(data.password) : null,
   };
 
@@ -177,35 +187,50 @@ export async function createDatabaseConnection(data: Omit<InsertDatabaseConnecti
   return result[0].insertId;
 }
 
-export async function updateDatabaseConnection(id: number, data: Partial<Omit<InsertDatabaseConnection, 'encryptedPassword'>> & { password?: string }) {
+export async function updateDatabaseConnection(
+  id: number,
+  data: Partial<Omit<InsertDatabaseConnection, 'encryptedPassword' | 'tenantId'>> & { password?: string; tenantId?: string }
+) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
   const updateData: Partial<InsertDatabaseConnection> = { ...data };
+  if (!updateData.tenantId) {
+    updateData.tenantId = defaultTenant;
+  }
   if (data.password) {
     updateData.encryptedPassword = encrypt(data.password);
   }
   delete (updateData as Record<string, unknown>).password;
 
-  await db.update(databaseConnections).set(updateData).where(eq(databaseConnections.id, id));
+  await db
+    .update(databaseConnections)
+    .set(updateData)
+    .where(and(eq(databaseConnections.id, id), eq(databaseConnections.tenantId, data.tenantId ?? defaultTenant)));
 }
 
 export async function deleteDatabaseConnection(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  await db.delete(databaseConnections).where(eq(databaseConnections.id, id));
+  await db
+    .delete(databaseConnections)
+    .where(and(eq(databaseConnections.id, id), eq(databaseConnections.tenantId, defaultTenant)));
 }
 
-export async function getDatabaseConnectionById(id: number) {
+export async function getDatabaseConnectionById(id: number, tenantId: string = defaultTenant) {
   const db = await getDb();
   if (!db) return undefined;
 
-  const result = await db.select().from(databaseConnections).where(eq(databaseConnections.id, id)).limit(1);
+  const result = await db
+    .select()
+    .from(databaseConnections)
+    .where(and(eq(databaseConnections.id, id), eq(databaseConnections.tenantId, tenantId)))
+    .limit(1);
   return result[0];
 }
 
-export async function getAllDatabaseConnections() {
+export async function getAllDatabaseConnections(tenantId: string = defaultTenant) {
   const db = await getDb();
   if (!db) return [];
 
@@ -224,16 +249,20 @@ export async function getAllDatabaseConnections() {
     createdById: databaseConnections.createdById,
     createdAt: databaseConnections.createdAt,
     updatedAt: databaseConnections.updatedAt,
-  }).from(databaseConnections).orderBy(desc(databaseConnections.createdAt));
+  })
+    .from(databaseConnections)
+    .where(eq(databaseConnections.tenantId, tenantId))
+    .orderBy(desc(databaseConnections.createdAt));
 }
 
 export async function getDecryptedPassword(id: number): Promise<string | null> {
   const db = await getDb();
   if (!db) return null;
 
-  const result = await db.select({ encryptedPassword: databaseConnections.encryptedPassword })
+  const result = await db
+    .select({ encryptedPassword: databaseConnections.encryptedPassword })
     .from(databaseConnections)
-    .where(eq(databaseConnections.id, id))
+    .where(and(eq(databaseConnections.id, id), eq(databaseConnections.tenantId, defaultTenant)))
     .limit(1);
 
   if (!result[0]?.encryptedPassword) return null;
@@ -244,11 +273,14 @@ export async function updateConnectionStatus(id: number, status: 'active' | 'ina
   const db = await getDb();
   if (!db) return;
 
-  await db.update(databaseConnections).set({
-    status,
-    lastConnectedAt: status === 'active' ? new Date() : undefined,
-    lastError: error || null,
-  }).where(eq(databaseConnections.id, id));
+  await db
+    .update(databaseConnections)
+    .set({
+      status,
+      lastConnectedAt: status === 'active' ? new Date() : undefined,
+      lastError: error || null,
+    })
+    .where(and(eq(databaseConnections.id, id), eq(databaseConnections.tenantId, defaultTenant)));
 }
 
 // ============ Connection Logs ============
@@ -257,7 +289,7 @@ export async function logConnectionAction(data: InsertConnectionLog) {
   const db = await getDb();
   if (!db) return;
 
-  await db.insert(connectionLogs).values(data);
+  await db.insert(connectionLogs).values({ ...data, tenantId: data.tenantId ?? defaultTenant });
 }
 
 export async function getConnectionLogs(connectionId: number, limit = 50) {

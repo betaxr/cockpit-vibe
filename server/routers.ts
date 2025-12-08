@@ -54,22 +54,24 @@ export const appRouter = router({
       username: z.string(),
       password: z.string(),
     })).mutation(async ({ input, ctx }) => {
-      // Dev/test backdoor: can be disabled by ENABLE_TEST_LOGIN=false
-      const testLoginEnabled = process.env.ENABLE_TEST_LOGIN !== "false";
+      // Dev/test backdoor: hard-disabled in production
+      const testLoginEnabled = process.env.NODE_ENV !== "production" && process.env.ENABLE_TEST_LOGIN !== "false";
       if (!testLoginEnabled) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Test login disabled' });
       }
       if (input.username === 'admin' && input.password === 'admin') {
         const testOpenId = 'test-admin-user';
+        const tenantId = ctx.tenantId ?? (process.env.TENANT_ID ?? "default");
         await upsertUser({
           openId: testOpenId,
+          tenantId,
           name: 'Test Admin',
           email: 'admin@test.local',
           loginMethod: 'test',
           role: 'admin',
           lastSignedIn: new Date(),
         });
-        const user = await getUserByOpenId(testOpenId);
+        const user = await getUserByOpenId(testOpenId, tenantId);
         if (!user) return { success: false, message: 'User creation failed' };
         const token = await standaloneAuth.createSessionToken(user.openId, {
           name: user.name || 'Test Admin',
@@ -80,7 +82,7 @@ export const appRouter = router({
         await logAudit({
           action: "auth.testLogin",
           actor: { id: testOpenId, role: 'admin' },
-          tenantId: ctx.tenantId ?? (process.env.TENANT_ID ?? "default"),
+          tenantId,
           meta: { username: input.username },
         });
         return { success: true, message: 'Login successful' };
