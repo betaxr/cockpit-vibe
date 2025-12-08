@@ -1,12 +1,13 @@
 import { AXIOS_TIMEOUT_MS, COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { ForbiddenError } from "@shared/_core/errors";
-import axios, { type AxiosInstance } from "axios";
+import axios, { type AxiosInstance, AxiosError } from "axios";
 import { parse as parseCookieHeader } from "cookie";
 import type { Request } from "express";
 import { SignJWT, jwtVerify } from "jose";
 import type { User } from "../../drizzle/schema";
 import * as db from "../db";
 import { ENV } from "./env";
+import { logger } from "./ops";
 import type {
   ExchangeTokenRequest,
   ExchangeTokenResponse,
@@ -91,11 +92,54 @@ class OAuthService {
   }
 }
 
-const createOAuthHttpClient = (): AxiosInstance =>
-  axios.create({
+const RETRYABLE_STATUS = new Set([500, 502, 503, 504]);
+
+const createOAuthHttpClient = (): AxiosInstance => {
+  const client = axios.create({
     baseURL: ENV.oAuthServerUrl,
     timeout: AXIOS_TIMEOUT_MS,
   });
+
+  client.interceptors.request.use(config => {
+    (config as any).__start = Date.now();
+    logger.debug({ url: config.url, method: config.method }, "OAuth request start");
+    return config;
+  });
+
+  client.interceptors.response.use(
+    response => {
+      const duration = Date.now() - ((response.config as any).__start || Date.now());
+      logger.info({ url: response.config.url, status: response.status, duration }, "OAuth request success");
+      return response;
+    },
+    async (error: AxiosError) => {
+      const config = error.config || {};
+      const attempt = ((config as any).__retryCount ?? 0) + 1;
+      const shouldRetry =
+        attempt <= 2 &&
+        (!error.response || RETRYABLE_STATUS.has(error.response.status));
+
+      if (shouldRetry) {
+        (config as any).__retryCount = attempt;
+        const backoffMs = attempt * 200;
+        logger.warn({ url: config.url, attempt, backoffMs }, "OAuth request retrying");
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+        return client.request(config);
+      }
+
+      const duration = Date.now() - ((config as any).__start || Date.now());
+      logger.error({
+        url: config.url,
+        status: error.response?.status,
+        message: error.message,
+        duration,
+      }, "OAuth request failed");
+      return Promise.reject(error);
+    }
+  );
+
+  return client;
+};
 
 class SDKServer {
   private readonly client: AxiosInstance;
