@@ -1,106 +1,44 @@
 /**
- * @fileoverview Operations & Reliability
- * 
- * Provides logging, health checks, and graceful shutdown handling.
- * 
- * @module server/_core/ops
+ * @fileoverview Operations & Reliability (logging, health, shutdown)
  */
 
 import { Request, Response, NextFunction } from "express";
+import pino from "pino";
+import pinoHttp from "pino-http";
 import { getDb } from "../db";
-import { getMongoDb } from "./mongo";
+import { closeMongo, getMongoDb } from "./mongo";
 
-// Simple structured logger (can be replaced with pino later)
-type LogLevel = "debug" | "info" | "warn" | "error";
+export const logger = pino({
+  level: process.env.LOG_LEVEL || "info",
+  transport:
+    process.env.NODE_ENV === "production"
+      ? undefined
+      : {
+          target: "pino-pretty",
+          options: { colorize: true, translateTime: "SYS:standard" },
+        },
+  base: { service: "cockpit-vibe" },
+  timestamp: pino.stdTimeFunctions.isoTime,
+});
 
-interface LogEntry {
-  timestamp: string;
-  level: LogLevel;
-  message: string;
-  context?: Record<string, unknown>;
-}
+export const requestLogger = pinoHttp({
+  logger,
+  serializers: {
+    req: (req) => ({ method: req.method, url: req.url }),
+    res: (res) => ({ statusCode: res.statusCode }),
+  },
+  customProps: (req) => ({
+    userAgent: req.headers["user-agent"],
+    ip: req.socket.remoteAddress,
+  }),
+});
 
-/**
- * Structured logger
- */
-export const logger = {
-  debug(message: string, context?: Record<string, unknown>) {
-    this.log("debug", message, context);
-  },
-  
-  info(message: string, context?: Record<string, unknown>) {
-    this.log("info", message, context);
-  },
-  
-  warn(message: string, context?: Record<string, unknown>) {
-    this.log("warn", message, context);
-  },
-  
-  error(message: string, context?: Record<string, unknown>) {
-    this.log("error", message, context);
-  },
-  
-  log(level: LogLevel, message: string, context?: Record<string, unknown>) {
-    const entry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level,
-      message,
-      context,
-    };
-    
-    const output = JSON.stringify(entry);
-    
-    if (level === "error") {
-      console.error(output);
-    } else if (level === "warn") {
-      console.warn(output);
-    } else {
-      console.log(output);
-    }
-  },
-};
-
-/**
- * HTTP request logging middleware
- */
-export function requestLogger(req: Request, res: Response, next: NextFunction) {
-  const startTime = Date.now();
-  
-  // Log after response is sent
-  res.on("finish", () => {
-    const duration = Date.now() - startTime;
-    
-    logger.info("HTTP Request", {
-      method: req.method,
-      path: req.path,
-      status: res.statusCode,
-      duration: `${duration}ms`,
-      userAgent: req.headers["user-agent"],
-      ip: req.ip || req.socket.remoteAddress,
-    });
-  });
-  
-  next();
-}
-
-/**
- * Error logging middleware
- */
 export function errorLogger(err: Error, req: Request, res: Response, next: NextFunction) {
-  logger.error("Unhandled Error", {
-    error: err.message,
-    stack: err.stack,
-    method: req.method,
-    path: req.path,
-  });
-  
+  logger.error({ err, path: req.path, method: req.method }, "Unhandled Error");
   next(err);
 }
 
-/**
- * Health check response type
- */
-interface HealthStatus {
+type HealthStatus = {
   status: "healthy" | "degraded" | "unhealthy";
   timestamp: string;
   uptime: number;
@@ -109,17 +47,12 @@ interface HealthStatus {
     mongo: { status: string };
     memory: { used: number; total: number; percentage: number };
   };
-}
+};
 
-/**
- * Health check endpoint handler
- */
 export async function healthCheck(req: Request, res: Response) {
-  const startTime = Date.now();
   let dbStatus = "unknown";
   let dbLatency: number | undefined;
-  
-  // Check MySQL connection (legacy)
+
   try {
     const db = await getDb();
     if (db) {
@@ -132,33 +65,30 @@ export async function healthCheck(req: Request, res: Response) {
     }
   } catch (error) {
     dbStatus = "error";
-    logger.error("Health check database error", { error: String(error) });
+    logger.error({ error: String(error) }, "Health check database error");
   }
 
-  // Check Mongo connection
   let mongoStatus = "unknown";
   try {
     const mongo = await getMongoDb();
     mongoStatus = mongo ? "connected" : "not_configured";
   } catch (error) {
     mongoStatus = "error";
-    logger.error("Health check mongo error", { error: String(error) });
+    logger.error({ error: String(error) }, "Health check mongo error");
   }
-  
-  // Check memory usage
+
   const memUsage = process.memoryUsage();
   const memTotal = memUsage.heapTotal;
   const memUsed = memUsage.heapUsed;
   const memPercentage = Math.round((memUsed / memTotal) * 100);
-  
-  // Determine overall status
+
   let overallStatus: "healthy" | "degraded" | "unhealthy" = "healthy";
-  if (dbStatus === "error") {
+  if (dbStatus === "error" || mongoStatus === "error") {
     overallStatus = "unhealthy";
-  } else if (dbStatus === "not_configured" || memPercentage > 90) {
+  } else if (dbStatus === "not_configured" || mongoStatus === "not_configured" || memPercentage > 90) {
     overallStatus = "degraded";
   }
-  
+
   const health: HealthStatus = {
     status: overallStatus,
     timestamp: new Date().toISOString(),
@@ -173,63 +103,36 @@ export async function healthCheck(req: Request, res: Response) {
       },
     },
   };
-  
+
   const statusCode = overallStatus === "healthy" ? 200 : overallStatus === "degraded" ? 200 : 503;
   res.status(statusCode).json(health);
 }
 
-/**
- * Graceful shutdown handler
- */
 let isShuttingDown = false;
-
 export function setupGracefulShutdown(server: { close: (callback?: () => void) => void }) {
   const shutdown = async (signal: string) => {
     if (isShuttingDown) return;
     isShuttingDown = true;
-    
-    logger.info("Graceful shutdown initiated", { signal });
-    
-    // Stop accepting new connections
+
+    logger.info({ signal }, "Graceful shutdown initiated");
     server.close(() => {
       logger.info("HTTP server closed");
     });
-    
-    // Give existing requests time to complete
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    
-    // Close database connections
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     try {
       const db = await getDb();
       if (db) {
-        // Drizzle doesn't have explicit close, but we can log
         logger.info("Database connections closed");
       }
+      await closeMongo();
     } catch (error) {
-      logger.error("Error closing database", { error: String(error) });
+      logger.error({ error: String(error) }, "Error during shutdown");
     }
-    
     logger.info("Shutdown complete");
     process.exit(0);
   };
-  
+
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
-  
-  // Handle uncaught exceptions
-  process.on("uncaughtException", (error) => {
-    logger.error("Uncaught Exception", { error: error.message, stack: error.stack });
-    shutdown("uncaughtException");
-  });
-  
-  process.on("unhandledRejection", (reason) => {
-    logger.error("Unhandled Rejection", { reason: String(reason) });
-  });
-}
-
-/**
- * Check if shutdown is in progress
- */
-export function isShutdownInProgress(): boolean {
-  return isShuttingDown;
 }
