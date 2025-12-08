@@ -19,8 +19,8 @@ function Router() {
   const ProtectedAgentDetail = withAuth(AgentDetail);
   const ProtectedWochenplan = withAuth(Wochenplan);
   const ProtectedCortex = withAuth(Cortex);
-  const ProtectedProzesse = withAuth(Prozesse);
-  const ProtectedArbeitsplaetze = withAuth(Arbeitsplaetze);
+  const ProtectedProzesse = withAuth(Prozesse, { requireRoles: ["admin", "editor"] });
+  const ProtectedArbeitsplaetze = withAuth(Arbeitsplaetze, { requireRoles: ["admin", "editor"] });
 
   return (
     <Switch>

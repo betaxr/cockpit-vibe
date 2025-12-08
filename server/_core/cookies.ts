@@ -44,8 +44,8 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
-    // Avoid rejection in browsers: SameSite=None requires Secure.
-    sameSite: secure ? "none" : "lax",
+    // Prefer Lax to mitigate CSRF; only set None when explicitly needed.
+    sameSite: "lax",
     secure,
   };
 }

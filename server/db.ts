@@ -139,7 +139,7 @@ export async function getUserByOpenId(openId: string) {
 // ============ Database Connections ============
 
 // Simple encryption for passwords (in production, use a proper secrets manager)
-const ENCRYPTION_KEY = process.env.JWT_SECRET?.slice(0, 32).padEnd(32, '0') || 'default-key-for-dev-only!!!!!!!!';
+const ENCRYPTION_KEY = (process.env.ENCRYPTION_KEY || process.env.JWT_SECRET || '').slice(0, 32).padEnd(32, '0');
 const IV_LENGTH = 16;
 
 function encrypt(text: string): string {

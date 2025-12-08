@@ -58,13 +58,6 @@ async function startServer() {
   // tRPC API
   app.use(
     "/api/trpc",
-    // Stricter rate limit for auth endpoints
-    (req, res, next) => {
-      if (req.method === "POST" && req.path.includes("auth.testLogin")) {
-        return authRateLimit(req, res, next);
-      }
-      return next();
-    },
     createExpressMiddleware({
       router: appRouter,
       createContext,

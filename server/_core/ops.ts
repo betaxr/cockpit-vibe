@@ -8,6 +8,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import { getDb } from "../db";
+import { getMongoDb } from "./mongo";
 
 // Simple structured logger (can be replaced with pino later)
 type LogLevel = "debug" | "info" | "warn" | "error";
@@ -105,6 +106,7 @@ interface HealthStatus {
   uptime: number;
   checks: {
     database: { status: string; latency?: number };
+    mongo: { status: string };
     memory: { used: number; total: number; percentage: number };
   };
 }
@@ -117,7 +119,7 @@ export async function healthCheck(req: Request, res: Response) {
   let dbStatus = "unknown";
   let dbLatency: number | undefined;
   
-  // Check database connection
+  // Check MySQL connection (legacy)
   try {
     const db = await getDb();
     if (db) {
@@ -131,6 +133,16 @@ export async function healthCheck(req: Request, res: Response) {
   } catch (error) {
     dbStatus = "error";
     logger.error("Health check database error", { error: String(error) });
+  }
+
+  // Check Mongo connection
+  let mongoStatus = "unknown";
+  try {
+    const mongo = await getMongoDb();
+    mongoStatus = mongo ? "connected" : "not_configured";
+  } catch (error) {
+    mongoStatus = "error";
+    logger.error("Health check mongo error", { error: String(error) });
   }
   
   // Check memory usage
@@ -153,6 +165,7 @@ export async function healthCheck(req: Request, res: Response) {
     uptime: process.uptime(),
     checks: {
       database: { status: dbStatus, latency: dbLatency },
+      mongo: { status: mongoStatus },
       memory: {
         used: Math.round(memUsed / 1024 / 1024),
         total: Math.round(memTotal / 1024 / 1024),

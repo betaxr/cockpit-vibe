@@ -122,10 +122,10 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction) 
   const sessionCsrf = (req as any).session?.csrfToken;
   
   if (!csrfToken || csrfToken !== sessionCsrf) {
-    // For now, log warning but don't block (gradual rollout)
     console.warn("[Security] CSRF token mismatch for", req.method, req.path);
-    // Uncomment to enforce:
-    // return res.status(403).json({ error: "Invalid CSRF token" });
+    if (process.env.SKIP_CSRF !== "true") {
+      return res.status(403).json({ error: "Invalid CSRF token" });
+    }
   }
   
   next();

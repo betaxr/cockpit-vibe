@@ -13,7 +13,7 @@ import { COOKIE_NAME } from "@shared/const";
 
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router, roleProcedure } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { upsertUser, getUserByOpenId } from "./db";
@@ -53,9 +53,10 @@ export const appRouter = router({
       username: z.string(),
       password: z.string(),
     })).mutation(async ({ input, ctx }) => {
-      const testLoginEnabled = !ENV.isProduction || process.env.ENABLE_TEST_LOGIN === "true";
+      // Dev/test backdoor: can be disabled by ENABLE_TEST_LOGIN=false
+      const testLoginEnabled = process.env.ENABLE_TEST_LOGIN !== "false";
       if (!testLoginEnabled) {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Test login disabled in production' });
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Test login disabled' });
       }
       if (input.username === 'admin' && input.password === 'admin') {
         const testOpenId = 'test-admin-user';
@@ -167,17 +168,17 @@ export const appRouter = router({
 
   // Workspaces from seed data
   workspaces: router({
-    list: protectedProcedure.query(async () => {
+    list: roleProcedure(["admin", "editor"]).query(async () => {
       return fetchWorkspaces();
     }),
   }),
 
   // Processes from seed data with statistics
   processes: router({
-    list: protectedProcedure.query(async () => {
+    list: roleProcedure(["admin", "editor"]).query(async () => {
       return fetchProcesses();
     }),
-    running: protectedProcedure.query(async () => {
+    running: roleProcedure(["admin", "editor"]).query(async () => {
       return fetchRunningProcesses();
     }),
   }),

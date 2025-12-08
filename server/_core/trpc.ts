@@ -25,7 +25,24 @@ const requireUser = t.middleware(async opts => {
   });
 });
 
-export const protectedProcedure = t.procedure.use(requireUser);
+const requireTenant = t.middleware(async opts => {
+  const { ctx, next } = opts;
+  const tenantId = ctx.tenantId || process.env.TENANT_ID || "default";
+  // Enforce tenant match if user carries tenantId
+  const userTenant = (ctx.user as any)?.tenantId;
+  if (userTenant && userTenant !== tenantId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Tenant mismatch" });
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      tenantId,
+      user: ctx.user ? ({ ...ctx.user, tenantId } as any) : null,
+    },
+  });
+});
+
+export const protectedProcedure = t.procedure.use(requireUser).use(requireTenant);
 
 export const adminProcedure = t.procedure.use(
   t.middleware(async opts => {
@@ -39,7 +56,29 @@ export const adminProcedure = t.procedure.use(
       ctx: {
         ...ctx,
         user: ctx.user,
+        tenantId: ctx.tenantId || process.env.TENANT_ID || "default",
       },
     });
   }),
 );
+
+export function roleProcedure(roles: Array<"admin" | "editor" | "viewer">) {
+  return t.procedure.use(
+    t.middleware(async opts => {
+      const { ctx, next } = opts;
+      if (!ctx.user) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
+      }
+      if (!roles.includes(ctx.user.role as any)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
+      }
+      return next({
+        ctx: {
+          ...ctx,
+          user: ctx.user,
+          tenantId: ctx.tenantId || process.env.TENANT_ID || "default",
+        },
+      });
+    })
+  );
+}

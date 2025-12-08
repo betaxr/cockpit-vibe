@@ -10,6 +10,7 @@
 export const ENV = {
   // Required for standalone operation
   cookieSecret: process.env.JWT_SECRET ?? "",
+  encryptionKey: process.env.ENCRYPTION_KEY ?? process.env.JWT_SECRET ?? "",
   databaseUrl: process.env.DATABASE_URL ?? "",
   isProduction: process.env.NODE_ENV === "production",
   mongoDbName: process.env.MONGO_DB ?? "cockpit_vibe",

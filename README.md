@@ -96,6 +96,7 @@ Erstelle eine `.env` Datei im Projektroot:
 ```env
 # Erforderlich (mindestens)
 JWT_SECRET=dein-geheimer-schluessel-mindestens-32-zeichen
+ENCRYPTION_KEY=separater-32-char-key-fuer-db-verschluesselung
 MONGO_URI=mongodb://user:password@localhost:27017
 MONGO_DB=cockpit_vibe
 TENANT_ID=default
@@ -114,6 +115,7 @@ STANDALONE_MODE=true
 | Variable | Beschreibung | Beispiel |
 |----------|--------------|----------|
 | `JWT_SECRET` | Session-Secret (min. 32 Zeichen) | `openssl rand -base64 32` |
+| `ENCRYPTION_KEY` | Separater Key für DB-Passwort-Verschlüsselung | eigener 32+ Byte Wert |
 | `MONGO_URI` | Mongo Connection String | `mongodb://user:pass@localhost:27017` |
 | `MONGO_DB` | Mongo DB Name | `cockpit_vibe` |
 | `TENANT_ID` | Tenant Scope | `default` |

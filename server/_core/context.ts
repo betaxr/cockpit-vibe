@@ -27,12 +27,14 @@ export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
   res: CreateExpressContextOptions["res"];
   user: User | null;
+  tenantId: string;
 };
 
 export async function createContext(
   opts: CreateExpressContextOptions
 ): Promise<TrpcContext> {
   let user: User | null = null;
+  const tenantId = process.env.TENANT_ID ?? "default";
 
   try {
     const authService = await getAuthService();
@@ -51,5 +53,6 @@ export async function createContext(
     req: opts.req,
     res: opts.res,
     user,
+    tenantId,
   };
 }

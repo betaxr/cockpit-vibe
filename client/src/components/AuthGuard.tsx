@@ -16,6 +16,8 @@ interface AuthGuardProps {
   children: ReactNode;
   /** Require admin role */
   requireAdmin?: boolean;
+  /** Require one of these roles */
+  requireRoles?: Array<"admin" | "editor" | "viewer">;
   /** Custom loading component */
   loadingComponent?: ReactNode;
   /** Custom unauthorized component */
@@ -78,6 +80,7 @@ function DefaultUnauthorized({ message }: { message: string }) {
 export function AuthGuard({
   children,
   requireAdmin = false,
+  requireRoles,
   loadingComponent,
   unauthorizedComponent,
 }: AuthGuardProps) {
@@ -101,6 +104,17 @@ export function AuthGuard({
       <>
         {unauthorizedComponent || (
           <DefaultUnauthorized message="Diese Seite erfordert Admin-Rechte." />
+        )}
+      </>
+    );
+  }
+
+  // Check custom roles requirement
+  if (requireRoles && !requireRoles.includes(user.role as any)) {
+    return (
+      <>
+        {unauthorizedComponent || (
+          <DefaultUnauthorized message="Du hast nicht die erforderliche Rolle." />
         )}
       </>
     );
