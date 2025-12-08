@@ -229,14 +229,14 @@
 
 ### 1. Echte Datenbank-Persistenz
 - [x] Service Layer erstellen (services/agents.ts, services/teams.ts)
-- [ ] Routers von seedData auf DB-Queries umstellen
+- [x] Routers von seedData auf DB-Queries umstellen (Mongo-Sync mit Seed-Fallback)
 - [x] Fail-fast wenn DATABASE_URL fehlt (envValidation.ts)
 - [ ] DB-Seeding Script für Initialdaten
 
 ### 2. Security-Hardening
 - [x] CSRF-Schutz hinzufügen (security.ts)
 - [x] Rate-Limiting für Auth-Endpoints (security.ts)
-- [ ] Dedizierter Encryption-Key (nicht JWT_SECRET)
+- [x] Dedizierter Encryption-Key (ENCRYPTION_KEY anstelle JWT_SECRET)
 - [ ] testLogin nur im Development-Mode
 
 ### 3. Ops & Reliability
@@ -247,8 +247,8 @@
 
 ### 4. Testing erweitern
 - [x] Auth-Failure-Tests (auth.failure.test.ts - 14 tests)
-- [ ] HTTP-Integration-Tests
-- [ ] Zeit-Mocking für zeitabhängige Tests
+- [x] HTTP-Integration-Tests (supertest, derzeit im Sandbox-Run übersprungen)
+- [x] Zeit-Mocking für zeitabhängige Tests
 - [x] Shape-Assertions für API-Responses (auth.failure.test.ts)
 
 ### 5. Windows Service Support
@@ -258,5 +258,5 @@
 
 ### 6. Frontend Auth-Guards
 - [x] Auth-Guard HOC/Wrapper (AuthGuard.tsx)
-- [ ] Zentrale Error-Handling
+- [x] Zentrale Error-Handling (globaler ErrorBoundary)
 - [ ] Loading-States verbessern

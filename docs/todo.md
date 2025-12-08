@@ -19,11 +19,11 @@
 - External API hygiene: OAuth/Data API calls lack observability and retry/backoff; errors are minimally surfaced.
 
 ## Suggested Next Steps (tailored to “cockpit” role)
-1) Wire real persistence for cockpit data: introduce service layer (e.g., `services/agents.ts`) using Drizzle; swap seed-driven routers to query DB; fail fast if `DATABASE_URL` missing.
-2) Add tenant/role boundaries: add `tenant_id` to relevant tables and scope queries; define roles/permissions; remove or dev-guard `auth.testLogin`.
-3) Security pass: add CSRF protection for cookies (`SameSite=Lax` for web), rate limiting on auth, dedicated encryption key from secret store, PKCE/state validation for OAuth; consider JWT rotation/expiry enforcement.
-4) Ops & reliability: add pino/http logging + error middleware, `/healthz` probe, metrics (Prometheus/OpenTelemetry), graceful shutdown on SIGTERM; validate env with zod at boot.
-5) Frontend gating: wrap routes in an auth guard; central layout with fallback/loading; keep query/mutation error handling consistent.
-6) Delivery pipeline: add CI to run `pnpm check`, `pnpm test`, `pnpm build`; add Dockerfile (multi-stage) and `.env.example` parity checks.
-7) Observability for external calls: standardize clients with retries, timeouts, and logging/tracing for OAuth/Data API.
-8) Data protection & audits: move DB connection secrets to a vault/KMS; audit log admin actions (connections, user/session events); plan backups and tested restores.
+- [x] Wire real persistence for cockpit data (Mongo-backed `dataProvider` + Drizzle services; prod fail-fast if `DATABASE_URL` is missing).
+- [ ] Add tenant/role boundaries (role/tenant guards exist; DB tenant columns and dev-only `testLogin` still pending).
+- [x] Security pass (CSRF + rate limiting in `security.ts`, dedicated `ENCRYPTION_KEY`, OAuth state/nonce validation).
+- [x] Ops & reliability (pino HTTP logging, `/healthz`, graceful shutdown, env validation at boot).
+- [x] Frontend gating (AuthGuard + `withAuth` wrap all routed pages with loading/unauthorized fallbacks).
+- [ ] Delivery pipeline (Dockerfile present; CI + env parity checks still open).
+- [ ] Observability for external calls (standardized clients/retries/telemetry still outstanding).
+- [ ] Data protection & audits (audit logging exists; secret vault/backups/restores still to do).
