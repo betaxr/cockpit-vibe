@@ -28,6 +28,7 @@ import {
   fetchRunningProcesses,
   fetchGlobalStats,
 } from "./services/dataProvider";
+import { logAudit } from "./services/audit";
 
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
@@ -76,6 +77,12 @@ export const appRouter = router({
         });
         const cookieOptions = getSessionCookieOptions(ctx.req);
         ctx.res.cookie(COOKIE_NAME, token, cookieOptions);
+        await logAudit({
+          action: "auth.testLogin",
+          actor: { id: testOpenId, role: 'admin' },
+          tenantId: ctx.tenantId ?? (process.env.TENANT_ID ?? "default"),
+          meta: { username: input.username },
+        });
         return { success: true, message: 'Login successful' };
       }
       return { success: false, message: 'Invalid credentials' };

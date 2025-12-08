@@ -38,20 +38,35 @@ class OAuthService {
     }
   }
 
-  private decodeState(state: string): string {
-    const redirectUri = atob(state);
-    return redirectUri;
+  private decodeState(state: string): { redirectUri: string; codeVerifier?: string; nonce?: string } {
+    try {
+      const decoded = Buffer.from(state, "base64").toString("utf8");
+      const parsed = JSON.parse(decoded);
+      if (parsed && typeof parsed.redirectUri === "string") {
+        return {
+          redirectUri: parsed.redirectUri,
+          codeVerifier: typeof parsed.codeVerifier === "string" ? parsed.codeVerifier : undefined,
+          nonce: typeof parsed.nonce === "string" ? parsed.nonce : undefined,
+        };
+      }
+    } catch {
+      // fallback to legacy behavior
+    }
+    return { redirectUri: Buffer.from(state, "base64").toString("utf8") };
   }
 
   async getTokenByCode(
     code: string,
     state: string
   ): Promise<ExchangeTokenResponse> {
+    const decoded = this.decodeState(state);
     const payload: ExchangeTokenRequest = {
       clientId: ENV.appId,
       grantType: "authorization_code",
       code,
-      redirectUri: this.decodeState(state),
+      redirectUri: decoded.redirectUri,
+      // PKCE support (plain) if provided
+      ...(decoded.codeVerifier ? { codeVerifier: decoded.codeVerifier } : {}),
     };
 
     const { data } = await this.client.post<ExchangeTokenResponse>(
