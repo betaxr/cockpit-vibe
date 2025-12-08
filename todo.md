@@ -224,3 +224,39 @@
 - [x] Aktualisiere README.md
 - [x] Aktualisiere ENV_SETUP.md
 - [x] Push zu GitHub (https://github.com/betaxr/cockpit-vibe)
+
+## Architektur-Verbesserungen (aus docs/)
+
+### 1. Echte Datenbank-Persistenz
+- [x] Service Layer erstellen (services/agents.ts, services/teams.ts)
+- [ ] Routers von seedData auf DB-Queries umstellen
+- [x] Fail-fast wenn DATABASE_URL fehlt (envValidation.ts)
+- [ ] DB-Seeding Script für Initialdaten
+
+### 2. Security-Hardening
+- [x] CSRF-Schutz hinzufügen (security.ts)
+- [x] Rate-Limiting für Auth-Endpoints (security.ts)
+- [ ] Dedizierter Encryption-Key (nicht JWT_SECRET)
+- [ ] testLogin nur im Development-Mode
+
+### 3. Ops & Reliability
+- [x] Pino/HTTP Logging hinzufügen (ops.ts)
+- [x] /healthz Endpoint (ops.ts)
+- [x] Graceful Shutdown (SIGTERM) (ops.ts)
+- [x] ENV-Validierung mit Zod beim Start (envValidation.ts)
+
+### 4. Testing erweitern
+- [x] Auth-Failure-Tests (auth.failure.test.ts - 14 tests)
+- [ ] HTTP-Integration-Tests
+- [ ] Zeit-Mocking für zeitabhängige Tests
+- [x] Shape-Assertions für API-Responses (auth.failure.test.ts)
+
+### 5. Windows Service Support
+- [x] WinSW Konfiguration erstellen (deploy/windows/)
+- [x] PowerShell Install/Start/Stop Scripts (deploy/windows/)
+- [x] Logging-Konfiguration für Windows (WinSW XML)
+
+### 6. Frontend Auth-Guards
+- [x] Auth-Guard HOC/Wrapper (AuthGuard.tsx)
+- [ ] Zentrale Error-Handling
+- [ ] Loading-States verbessern

@@ -29,6 +29,7 @@ export const teams = mysqlTable("teams", {
   region: varchar("region", { length: 128 }),
   customerType: varchar("customerType", { length: 128 }),
   project: varchar("project", { length: 255 }),
+  agentCount: int("agentCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

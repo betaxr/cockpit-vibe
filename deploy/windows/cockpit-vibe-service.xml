@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WinSW Configuration for Cockpit Vibe
+  
+  Prerequisites:
+  1. Download WinSW from https://github.com/winsw/winsw/releases
+  2. Rename winsw.exe to cockpit-vibe-service.exe
+  3. Place this XML file next to the exe
+  4. Run: cockpit-vibe-service.exe install
+  
+  Commands:
+  - cockpit-vibe-service.exe install   (Install service)
+  - cockpit-vibe-service.exe uninstall (Remove service)
+  - cockpit-vibe-service.exe start     (Start service)
+  - cockpit-vibe-service.exe stop      (Stop service)
+  - cockpit-vibe-service.exe status    (Check status)
+-->
+<service>
+  <id>cockpit-vibe</id>
+  <name>Cockpit Vibe</name>
+  <description>Cockpit Vibe Agent Management Dashboard</description>
+  
+  <!-- Node.js executable path (adjust if needed) -->
+  <executable>node</executable>
+  <arguments>dist/index.js</arguments>
+  
+  <!-- Working directory (where the app is installed) -->
+  <workingdirectory>%BASE%\..</workingdirectory>
+  
+  <!-- Environment variables -->
+  <env name="NODE_ENV" value="production"/>
+  <env name="PORT" value="3000"/>
+  
+  <!-- Logging -->
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>5</keepFiles>
+  </log>
+  <logpath>%BASE%\..\logs</logpath>
+  
+  <!-- Service recovery options -->
+  <onfailure action="restart" delay="10 sec"/>
+  <onfailure action="restart" delay="30 sec"/>
+  <onfailure action="none"/>
+  
+  <!-- Graceful shutdown timeout -->
+  <stoptimeout>30 sec</stoptimeout>
+  
+  <!-- Run as LocalSystem (or configure specific user) -->
+  <serviceaccount>
+    <domain>NT AUTHORITY</domain>
+    <user>LocalSystem</user>
+    <allowservicelogon>true</allowservicelogon>
+  </serviceaccount>
+  
+  <!-- Startup type -->
+  <startmode>Automatic</startmode>
+  
+  <!-- Dependencies (optional) -->
+  <!-- <depend>MySQL80</depend> -->
+</service>

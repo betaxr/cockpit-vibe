@@ -1,0 +1,1 @@
+ALTER TABLE `teams` ADD `agentCount` int DEFAULT 0 NOT NULL;
