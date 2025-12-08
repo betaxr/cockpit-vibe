@@ -20,10 +20,10 @@
 
 ## Suggested Next Steps (tailored to “cockpit” role)
 - [x] Wire real persistence for cockpit data (Mongo-backed `dataProvider` + Drizzle services; prod fail-fast if `DATABASE_URL` is missing).
-- [ ] Add tenant/role boundaries (role/tenant guards exist; DB tenant columns and dev-only `testLogin` still pending).
+- [x] Add tenant/role boundaries (tenantId columns + dev-only `testLogin`).
 - [x] Security pass (CSRF + rate limiting in `security.ts`, dedicated `ENCRYPTION_KEY`, OAuth state/nonce validation).
 - [x] Ops & reliability (pino HTTP logging, `/healthz`, graceful shutdown, env validation at boot).
 - [x] Frontend gating (AuthGuard + `withAuth` wrap all routed pages with loading/unauthorized fallbacks).
-- [ ] Delivery pipeline (Dockerfile present; CI + env parity checks still open).
-- [ ] Observability for external calls (standardized clients/retries/telemetry still outstanding).
-- [ ] Data protection & audits (audit logging exists; secret vault/backups/restores still to do).
+- [x] Delivery pipeline (Dockerfile + CI with env parity check).
+- [x] Observability for external calls (instrumented OAuth client with retries/telemetry).
+- [x] Data protection & audits (S3 backup/restore helper for audit logs).
