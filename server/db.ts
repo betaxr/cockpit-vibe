@@ -47,6 +47,10 @@ export function getTestAdminUser(openId: string = TEST_ADMIN_OPEN_ID): User {
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
+  if (ENV.isProduction && !process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL is required in production");
+  }
+
   if (!_db && process.env.DATABASE_URL) {
     try {
       _db = drizzle(process.env.DATABASE_URL);

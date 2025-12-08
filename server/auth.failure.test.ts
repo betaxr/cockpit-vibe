@@ -12,6 +12,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { appRouter } from "./routers";
 import { TRPCError } from "@trpc/server";
+vi.mock("./_core/notification", () => ({
+  notifyOwner: vi.fn().mockResolvedValue(true),
+}));
 
 // Mock request object
 const mockReq = {
@@ -46,6 +49,28 @@ function createUserContext() {
       name: "Test User",
       email: "user@test.local",
       role: "user" as const,
+      loginMethod: "test",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    },
+    req: mockReq,
+    res: mockRes,
+    setCookie: vi.fn(),
+    clearCookie: vi.fn(),
+    getCookie: vi.fn(),
+  };
+}
+
+// Mock context with admin user
+function createAdminContext() {
+  return {
+    user: {
+      id: 1,
+      openId: "admin-user",
+      name: "Admin User",
+      email: "admin@test.local",
+      role: "admin" as const,
       loginMethod: "test",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -150,6 +175,25 @@ describe("auth failure paths", () => {
       const result = await caller.auth.logout();
       expect(result).toEqual({ success: true });
     });
+  });
+});
+
+describe("admin route protection", () => {
+  it("forbids notifyOwner for non-admin user", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.system.notifyOwner({ title: "t", content: "c" })
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("allows notifyOwner for admin user", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.system.notifyOwner({ title: "Hello", content: "World" });
+    expect(result).toHaveProperty("success");
   });
 });
 

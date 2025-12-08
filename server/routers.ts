@@ -55,6 +55,9 @@ export const appRouter = router({
       username: z.string(),
       password: z.string(),
     })).mutation(async ({ input, ctx }) => {
+      if (ENV.isProduction) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Test login disabled in production' });
+      }
       if (input.username === 'admin' && input.password === 'admin') {
         const testOpenId = 'test-admin-user';
         await upsertUser({

@@ -11,17 +11,26 @@ import Cortex from "./pages/Cortex";
 import Prozesse from "./pages/Prozesse";
 import Arbeitsplaetze from "./pages/Arbeitsplaetze";
 import Login from "./pages/Login";
+import { withAuth } from "./components/AuthGuard";
 
 function Router() {
+  // Wrap all protected routes with auth guard; login stays public.
+  const ProtectedAgents = withAuth(Agents);
+  const ProtectedAgentDetail = withAuth(AgentDetail);
+  const ProtectedWochenplan = withAuth(Wochenplan);
+  const ProtectedCortex = withAuth(Cortex);
+  const ProtectedProzesse = withAuth(Prozesse);
+  const ProtectedArbeitsplaetze = withAuth(Arbeitsplaetze);
+
   return (
     <Switch>
-      <Route path="/" component={Agents} />
-      <Route path="/agent/:id" component={AgentDetail} />
-      <Route path="/wochenplan" component={Wochenplan} />
-      <Route path="/cortex" component={Cortex} />
-      <Route path="/prozesse" component={Prozesse} />
-      <Route path="/arbeitsplaetze" component={Arbeitsplaetze} />
       <Route path="/login" component={Login} />
+      <Route path="/" component={ProtectedAgents} />
+      <Route path="/agent/:id" component={ProtectedAgentDetail} />
+      <Route path="/wochenplan" component={ProtectedWochenplan} />
+      <Route path="/cortex" component={ProtectedCortex} />
+      <Route path="/prozesse" component={ProtectedProzesse} />
+      <Route path="/arbeitsplaetze" component={ProtectedArbeitsplaetze} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
