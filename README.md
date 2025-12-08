@@ -20,14 +20,29 @@ Cockpit Vibe ist ein Enterprise-Dashboard für die Verwaltung von KI-Agenten-Tea
 git clone https://github.com/betaxr/cockpit-vibe.git
 cd cockpit-vibe
 
-# Mit Docker starten (inkl. MySQL)
-docker-compose up -d
+# Mit Docker bauen und starten (inkl. MySQL)
+docker-compose up -d --build
+
+# Warte bis MySQL healthy ist (~30 Sekunden)
+# Prüfe Status mit: docker-compose ps
 
 # Datenbank-Schema erstellen
-docker-compose exec app pnpm db:push
+docker-compose exec app sh -c "pnpm db:push"
 
 # Öffne http://localhost:3000
 # Login: admin / admin
+```
+
+**Troubleshooting:**
+```bash
+# Logs anzeigen wenn etwas nicht funktioniert
+docker-compose logs -f
+
+# Container neu bauen nach Code-Änderungen
+docker-compose up -d --build --force-recreate
+
+# Alles zurücksetzen (inkl. Datenbank)
+docker-compose down -v
 ```
 
 ### Option 2: Lokale Installation

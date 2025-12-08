@@ -3,11 +3,11 @@
 # Startet MySQL Datenbank und die Anwendung
 #
 # Verwendung:
-#   docker-compose up -d        # Startet alle Services
-#   docker-compose down         # Stoppt alle Services
-#   docker-compose logs -f app  # Zeigt App-Logs
-
-version: '3.8'
+#   docker-compose up -d              # Startet alle Services
+#   docker-compose up -d --build      # Baut und startet (nach Code-Änderungen)
+#   docker-compose down               # Stoppt alle Services
+#   docker-compose logs -f app        # Zeigt App-Logs
+#   docker-compose exec app sh        # Shell im Container
 
 services:
   # MySQL Datenbank
@@ -30,9 +30,11 @@ services:
       timeout: 5s
       retries: 5
 
-  # Anwendung (optional - kann auch lokal mit pnpm dev laufen)
+  # Anwendung
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: cockpit-vibe-app
     restart: unless-stopped
     depends_on:
@@ -41,14 +43,11 @@ services:
     environment:
       DATABASE_URL: mysql://cockpit:cockpitpassword@db:3306/cockpit_vibe
       JWT_SECRET: your-super-secret-jwt-key-min-32-characters-long
-      NODE_ENV: development
+      NODE_ENV: production
       STANDALONE_MODE: "true"
-      PORT: 3000
+      PORT: "3000"
     ports:
       - "3000:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
 
 volumes:
   mysql_data:
