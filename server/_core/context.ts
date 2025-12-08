@@ -10,6 +10,7 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
 import { ENV } from "./env";
+import * as db from "../db";
 
 // Use standalone auth by default, fall back to Manus SDK if OAuth is configured
 const getAuthService = async () => {
@@ -38,7 +39,12 @@ export async function createContext(
     user = await authService.authenticateRequest(opts.req);
   } catch (error) {
     // Authentication is optional for public procedures.
-    user = null;
+    // In standalone mode, fall back to test admin so dashboards work without OAuth.
+    if (ENV.isStandalone) {
+      user = db.getTestAdminUser();
+    } else {
+      user = null;
+    }
   }
 
   return {

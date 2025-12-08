@@ -17,11 +17,33 @@ import { eq, desc } from "drizzle-orm";
  */
 
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, databaseConnections, connectionLogs, InsertDatabaseConnection, InsertConnectionLog } from "../drizzle/schema";
+import { InsertUser, User, users, databaseConnections, connectionLogs, InsertDatabaseConnection, InsertConnectionLog } from "../drizzle/schema";
 import crypto from "crypto";
 import { ENV } from './_core/env';
 
+const TEST_ADMIN_OPEN_ID = "test-admin-user";
 let _db: ReturnType<typeof drizzle> | null = null;
+
+export function isDatabaseConfigured() {
+  return Boolean(process.env.DATABASE_URL);
+}
+
+export function getTestAdminUser(openId: string = TEST_ADMIN_OPEN_ID): User {
+  const now = new Date();
+  return {
+    id: 0,
+    openId,
+    name: "Test Admin",
+    email: "admin@test.local",
+    username: "admin",
+    passwordHash: null,
+    loginMethod: "local",
+    role: "admin",
+    createdAt: now,
+    updatedAt: now,
+    lastSignedIn: now,
+  };
+}
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
@@ -99,6 +121,9 @@ export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot get user: database not available");
+    if (openId === TEST_ADMIN_OPEN_ID) {
+      return getTestAdminUser(openId);
+    }
     return undefined;
   }
 

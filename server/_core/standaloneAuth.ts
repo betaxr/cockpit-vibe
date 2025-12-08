@@ -141,6 +141,9 @@ class StandaloneAuthService {
     const user = await db.getUserByOpenId(session.openId);
 
     if (!user) {
+      if (!db.isDatabaseConfigured()) {
+        return db.getTestAdminUser(session.openId);
+      }
       throw ForbiddenError("User not found");
     }
 
@@ -204,7 +207,10 @@ class StandaloneAuthService {
         });
         user = await db.getUserByOpenId(testOpenId);
       }
-      
+      if (!user && !db.isDatabaseConfigured()) {
+        user = db.getTestAdminUser(testOpenId);
+      }
+
       return user || null;
     }
 
