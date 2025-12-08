@@ -314,7 +314,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <main className="relative z-10 flex-1 p-6">{children}</main>
+        <main className="relative z-10 flex-1">{children}</main>
       </SidebarInset>
     </>
   );

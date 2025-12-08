@@ -1,6 +1,7 @@
 import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
 import KPICard from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
+import PageContainer from "@/components/PageContainer";
 import { TeamPortrait } from "@/components/TeamPortrait";
 import { trpc } from "@/lib/trpc";
 import { Zap, Clock, TrendingUp, ChevronRight, Users } from "lucide-react";
@@ -15,10 +16,8 @@ export default function Agents() {
 
   return (
     <DashboardLayout>
-      {/* MaxWidth Container with Apple HIG spacing */}
-      <div className="max-w-5xl mx-auto px-4">
-        {/* Header with title and date */}
-        <header className="flex items-start justify-between py-8">
+      <PageContainer className="space-y-6">
+        <header className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-semibold text-white tracking-tight">Einhorn Apotheke</h1>
             <p className="text-white/40 mt-1 text-sm">
@@ -57,7 +56,7 @@ export default function Agents() {
           </div>
         </header>
 
-        <div className="space-y-6 pb-8">
+        <div className="space-y-6">
           {/* Teams Grid */}
           <ModuleCard 
             title="Teams" 
@@ -166,7 +165,7 @@ export default function Agents() {
             </ModuleCard>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </DashboardLayout>
   );
 }

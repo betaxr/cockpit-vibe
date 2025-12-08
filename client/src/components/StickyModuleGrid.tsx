@@ -1,5 +1,6 @@
 import { GripVertical, Maximize2, Minimize2 } from "lucide-react";
 import { useState, useRef, useEffect, ReactNode, createContext, useContext } from "react";
+import { useEditMode } from "./DashboardLayout";
 
 // Grid configuration
 const GRID_SIZE = 20;
@@ -44,7 +45,8 @@ export function ModuleGridProvider({
   storageKey = "module-grid",
   defaultEditMode = false 
 }: ModuleGridProviderProps) {
-  const [isEditMode, setEditMode] = useState(defaultEditMode);
+  const globalEdit = useEditMode();
+  const [localEditMode, setLocalEditMode] = useState(defaultEditMode);
   const [positions, setPositions] = useState<ModulePosition[]>([]);
 
   // Load positions from localStorage
@@ -110,6 +112,9 @@ export function ModuleGridProvider({
       p.id === id ? { ...p, ...update } : p
     ));
   };
+
+  const isEditMode = globalEdit?.isEditMode ?? localEditMode;
+  const setEditMode = globalEdit?.setEditMode ?? setLocalEditMode;
 
   return (
     <ModuleGridContext.Provider value={{ 

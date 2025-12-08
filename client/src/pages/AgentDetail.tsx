@@ -186,9 +186,9 @@ export default function AgentDetail() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
+        <PageContainer className="flex items-center justify-center h-64">
           <div className="animate-pulse text-white/50">Laden...</div>
-        </div>
+        </PageContainer>
       </DashboardLayout>
     );
   }
@@ -196,7 +196,7 @@ export default function AgentDetail() {
   if (!agent) {
     return (
       <DashboardLayout>
-        <div className="text-center py-12">
+        <PageContainer className="text-center py-12">
           <p className="text-white/50">Agent nicht gefunden</p>
           <button 
             onClick={() => setLocation("/")}
@@ -204,14 +204,14 @@ export default function AgentDetail() {
           >
             Zurück zur Übersicht
           </button>
-        </div>
+        </PageContainer>
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <PageContainer className="space-y-8">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-5">
@@ -389,7 +389,7 @@ export default function AgentDetail() {
             </ModuleCard>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </DashboardLayout>
   );
 }

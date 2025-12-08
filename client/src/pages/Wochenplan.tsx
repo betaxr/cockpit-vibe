@@ -1,6 +1,7 @@
 import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
 import KPICard from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
+import PageContainer from "@/components/PageContainer";
 import { trpc } from "@/lib/trpc";
 import { Calendar, Clock, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useMemo } from "react";
@@ -267,8 +268,7 @@ export default function Wochenplan() {
 
   return (
     <DashboardLayout>
-      {/* MaxWidth Container with Apple HIG spacing */}
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <PageContainer className="space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
@@ -413,7 +413,7 @@ export default function Wochenplan() {
             </div>
           </ModuleCard>
         )}
-      </div>
+      </PageContainer>
     </DashboardLayout>
   );
 }

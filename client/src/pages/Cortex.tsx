@@ -1,5 +1,6 @@
 import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
 import ModuleCard from "@/components/ModuleCard";
+import PageContainer from "@/components/PageContainer";
 import { trpc } from "@/lib/trpc";
 import { Brain, Search, Plus, Tag } from "lucide-react";
 import { useState } from "react";
@@ -17,8 +18,7 @@ export default function Cortex() {
 
   return (
     <DashboardLayout>
-      {/* MaxWidth Container with Apple HIG spacing */}
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <PageContainer className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -92,7 +92,7 @@ export default function Cortex() {
             ))
           )}
         </div>
-      </div>
+      </PageContainer>
     </DashboardLayout>
   );
 }

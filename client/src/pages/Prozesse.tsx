@@ -1,6 +1,7 @@
 import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
 import KPICard from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
+import PageContainer from "@/components/PageContainer";
 import { trpc } from "@/lib/trpc";
 import { Workflow, Play, CheckCircle, XCircle, Clock, TrendingUp, Users, Zap } from "lucide-react";
 
@@ -44,8 +45,7 @@ export default function Prozesse() {
 
   return (
     <DashboardLayout>
-      {/* MaxWidth Container with Apple HIG spacing */}
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <PageContainer className="space-y-6">
         {/* Header with KPIs */}
         <div className="flex items-start justify-between">
           <div>
@@ -197,7 +197,7 @@ export default function Prozesse() {
             ))}
           </div>
         </ModuleCard>
-      </div>
+      </PageContainer>
     </DashboardLayout>
   );
 }

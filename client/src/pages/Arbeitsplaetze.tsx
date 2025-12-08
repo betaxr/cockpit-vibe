@@ -1,6 +1,7 @@
 import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
 import KPICard from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
+import PageContainer from "@/components/PageContainer";
 import { trpc } from "@/lib/trpc";
 import { Monitor, Wifi, WifiOff, MapPin, User, Server, Cloud } from "lucide-react";
 
@@ -41,8 +42,7 @@ export default function Arbeitsplaetze() {
 
   return (
     <DashboardLayout>
-      {/* MaxWidth Container with Apple HIG spacing */}
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <PageContainer className="space-y-6">
         {/* Header with KPIs */}
         <div className="flex items-start justify-between">
           <div>
@@ -72,10 +72,10 @@ export default function Arbeitsplaetze() {
         {/* Workspaces Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {workspaces.map((workspace) => (
-            <ModuleCard 
-              key={workspace.id}
-              isEditable={isEditMode}
-            >
+          <ModuleCard 
+            key={workspace.id}
+            isEditable={isEditMode}
+          >
               <div className="space-y-4">
                 {/* Header */}
                 <div className="flex items-start justify-between">
@@ -145,7 +145,7 @@ export default function Arbeitsplaetze() {
             </ModuleCard>
           ))}
         </div>
-      </div>
+      </PageContainer>
     </DashboardLayout>
   );
 }
