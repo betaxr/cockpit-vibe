@@ -194,3 +194,33 @@
 ### GitHub
 - [x] Create README.md with project documentation
 - [x] Push to cockpit-vibe repository (https://github.com/betaxr/cockpit-vibe)
+
+## Standalone-Umbau (Manus-unabhängig)
+
+### Analyse
+- [x] Identifiziere alle Manus SDK-Aufrufe
+- [x] Identifiziere OAuth-Abhängigkeiten
+- [x] Liste alle Manus-spezifischen ENV-Variablen
+
+### Authentication
+- [x] Ersetze Manus OAuth durch lokale Username/Password Auth (standaloneAuth.ts)
+- [x] Implementiere Passwort-Hashing (bcrypt)
+- [x] Implementiere Session-Management ohne Manus SDK
+
+### SDK-Ersatz
+- [x] Entferne/ersetze Manus SDK imports (standaloneAuth statt sdk)
+- [x] LLM/Storage nicht verwendet - keine Änderung nötig
+
+### Konfiguration
+- [x] Erstelle vollständige .env.example (in ENV_SETUP.md)
+- [x] Dokumentiere alle ENV-Variablen
+- [x] Standalone-Modus mit STANDALONE_MODE=true
+
+### Docker
+- [x] Erstelle Dockerfile
+- [x] Erstelle docker-compose.yml mit MySQL
+
+### Dokumentation
+- [x] Aktualisiere README.md
+- [x] Aktualisiere ENV_SETUP.md
+- [ ] Push zu GitHub

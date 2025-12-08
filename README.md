@@ -9,39 +9,81 @@ Ein modernes Dashboard zur Verwaltung und Überwachung von KI-Agenten in Unterne
 
 ## Übersicht
 
-Cockpit Vibe ist ein Enterprise-Dashboard für die Verwaltung von KI-Agenten-Teams. Das System ermöglicht:
+Cockpit Vibe ist ein Enterprise-Dashboard für die Verwaltung von KI-Agenten-Teams. Das System läuft **vollständig standalone** ohne externe Abhängigkeiten.
 
-- **Team-Management**: Verwaltung von 5 Teams (Marketing, Verkauf, Logistik, Support, Production)
-- **Prozess-Überwachung**: Echtzeit-Tracking von automatisierten Prozessen
-- **KPI-Dashboard**: Wertschöpfung, Zeitersparnis und Zuverlässigkeitsmetriken
-- **24/7 Scheduling**: Visuelle Darstellung der Agenten-Aktivitäten
+## Quick Start (Docker)
+
+Der schnellste Weg zum Starten:
+
+```bash
+# Repository klonen
+git clone https://github.com/betaxr/cockpit-vibe.git
+cd cockpit-vibe
+
+# Mit Docker starten (inkl. MySQL)
+docker-compose up -d
+
+# Datenbank-Schema erstellen
+docker-compose exec app pnpm db:push
+
+# Öffne http://localhost:3000
+# Login: admin / admin
+```
+
+## Quick Start (Lokal)
+
+```bash
+# Repository klonen
+git clone https://github.com/betaxr/cockpit-vibe.git
+cd cockpit-vibe
+
+# Dependencies installieren
+pnpm install
+
+# .env Datei erstellen (siehe unten)
+cp .env.example .env
+
+# Datenbank-Schema erstellen
+pnpm db:push
+
+# Entwicklungsserver starten
+pnpm dev
+
+# Öffne http://localhost:3000
+# Login: admin / admin
+```
+
+## Environment Variables
+
+Erstelle eine `.env` Datei im Projektroot:
+
+```env
+# Erforderlich
+DATABASE_URL=mysql://user:password@localhost:3306/cockpit_vibe
+JWT_SECRET=dein-geheimer-schluessel-mindestens-32-zeichen
+
+# Optional
+NODE_ENV=development
+PORT=3000
+STANDALONE_MODE=true
+```
+
+### Minimale Konfiguration
+
+Für Standalone-Betrieb brauchst du nur:
+
+| Variable | Beschreibung | Beispiel |
+|----------|--------------|----------|
+| `DATABASE_URL` | MySQL Connection String | `mysql://user:pass@localhost:3306/db` |
+| `JWT_SECRET` | Session-Secret (min. 32 Zeichen) | `openssl rand -base64 32` |
 
 ## Features
 
-### Dashboard
-- Modulare Karten mit Drag-and-Drop (Edit-Mode)
-- Team-Portraits mit SVG-Silhouetten
-- Gebündelte KPIs (Wertschöpfung + Zeitersparnis)
-- Prozess-Status-Farbcodierung
-
-### Teams
-| Team | Farbe | Agenten | Fokus |
-|------|-------|---------|-------|
-| Marketing | Gelb | 3 | Social Media und Kampagnen |
-| Verkauf | Orange | 2 | Kundenberatung und Verkauf |
-| Logistik | Grün | 4 | Wareneingang und Versand |
-| Support | Blau | 2 | Kundenservice und Retouren |
-| Production | Pink | 5 | Herstellung und Qualität |
-
-### Prozesse
-- Social Media Posting
-- Bestellbestätigung
-- Inventur-Check
-- Ticket-Triage
-- Retouren-Verarbeitung
-- Preisvergleich
-- Newsletter-Versand
-- Versandvorbereitung
+- **Team-Management**: 5 Teams (Marketing, Verkauf, Logistik, Support, Production)
+- **Prozess-Überwachung**: Echtzeit-Tracking von automatisierten Prozessen
+- **KPI-Dashboard**: Wertschöpfung, Zeitersparnis und Zuverlässigkeitsmetriken
+- **24/7 Scheduling**: Visuelle Darstellung der Agenten-Aktivitäten
+- **Modulares Design**: Drag-and-Drop Karten im Edit-Mode
 
 ## Tech Stack
 
@@ -53,49 +95,33 @@ Cockpit Vibe ist ein Enterprise-Dashboard für die Verwaltung von KI-Agenten-Tea
 
 ### Backend
 - Express 4 + tRPC 11
-- Drizzle ORM + MySQL/TiDB
-- Manus OAuth Integration
+- Drizzle ORM + MySQL
+- bcrypt (Passwort-Hashing)
+- JWT (Session-Management)
 
 ### Testing
 - Vitest (29 Tests)
 
-## Installation
-
-```bash
-# Dependencies installieren
-pnpm install
-
-# Entwicklungsserver starten
-pnpm dev
-
-# Tests ausführen
-pnpm test
-
-# Datenbank-Schema pushen
-pnpm db:push
-```
-
 ## Projektstruktur
 
 ```
-client/
+client/                 # Frontend
   src/
-    components/     # UI-Komponenten
-      FullBodyAgent.tsx    # SVG-Silhouette
-      KPICard.tsx          # KPI-Karten
-      TeamPortrait.tsx     # Team-Darstellung
-    pages/          # Seiten-Komponenten
-    App.tsx         # Routing
-  index.html
-server/
-  routers.ts          # tRPC API-Endpunkte
-  db.ts               # Datenbank-Operationen
-  seedData.ts         # Mock-Daten
-  *.test.ts           # Unit-Tests
+    components/         # UI-Komponenten
+    pages/              # Seiten
+    App.tsx             # Routing
+server/                 # Backend
+  _core/
+    standaloneAuth.ts   # Lokale Authentifizierung
+    context.ts          # tRPC Context
+    env.ts              # Environment Config
+  routers.ts            # API-Endpunkte
+  db.ts                 # Datenbank-Operationen
+  seedData.ts           # Demo-Daten
 drizzle/
-  schema.ts           # Datenbank-Schema
-shared/
-  const.ts            # Gemeinsame Konstanten
+  schema.ts             # Datenbank-Schema
+docker-compose.yml      # Docker Setup
+Dockerfile              # Container Build
 ```
 
 ## API-Endpunkte
@@ -103,38 +129,57 @@ shared/
 ### Authentication
 - `auth.me` - Aktueller Benutzer
 - `auth.logout` - Abmelden
-- `auth.testLogin` - Test-Login (admin/admin)
+- `auth.testLogin` - Login mit Username/Password
 
-### Agents und Teams
+### Agents & Teams
 - `agents.list` - Alle Agenten
-- `agents.getById` - Agent-Details
 - `teams.list` - Alle Teams
-- `teams.getById` - Team-Details
 
-### Processes und Schedule
+### Processes & Schedule
 - `processes.list` - Alle Prozesse
-- `processes.running` - Laufende Prozesse
-- `schedule.byAgent` - Zeitplan pro Agent
 - `schedule.week` - Wochenübersicht
 
 ### Statistics
 - `stats.global` - Globale KPIs
 
-## Design-System
+## Tests
 
-### Farben (OKLCH)
-- Background: `oklch(0.14 0.02 50)`
-- Border: `oklch(0.55 0.15 45 / 40%)`
-- Accent: `oklch(0.60 0.16 45)`
+```bash
+# Alle Tests ausführen
+pnpm test
 
-### Komponenten
-- Glassmorphism-Karten
-- SVG-basierte Silhouetten
-- Responsive Grid-Layouts
+# Tests im Watch-Mode
+pnpm test:watch
+```
+
+## Deployment
+
+### Docker
+
+```bash
+# Image bauen
+docker build -t cockpit-vibe .
+
+# Container starten
+docker run -p 3000:3000 \
+  -e DATABASE_URL=mysql://... \
+  -e JWT_SECRET=... \
+  cockpit-vibe
+```
+
+### Manuell
+
+```bash
+# Build erstellen
+pnpm build
+
+# Produktionsserver starten
+NODE_ENV=production node dist/server/index.js
+```
 
 ## Lizenz
 
-Proprietär - Cockpit Vibe Team
+MIT License
 
 ---
 

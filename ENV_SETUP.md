@@ -1,14 +1,34 @@
 # Environment Setup für Cockpit Vibe
 
-Diese Anleitung erklärt, wie du das Projekt lokal einrichtest.
+Diese Anleitung erklärt, wie du das Projekt lokal einrichtest - **ohne Manus-Abhängigkeiten**.
 
 ## Voraussetzungen
 
-- Node.js 18+
-- pnpm
-- MySQL/TiDB Datenbank
+- Node.js 18+ (empfohlen: 22)
+- pnpm (`npm install -g pnpm`)
+- MySQL 8.0+ oder Docker
 
-## 1. Repository klonen
+## Option A: Mit Docker (empfohlen)
+
+Der einfachste Weg - Docker startet MySQL automatisch:
+
+```bash
+# Repository klonen
+git clone https://github.com/betaxr/cockpit-vibe.git
+cd cockpit-vibe
+
+# Alles starten
+docker-compose up -d
+
+# Datenbank-Schema erstellen
+docker-compose exec app pnpm db:push
+
+# Fertig! Öffne http://localhost:3000
+```
+
+## Option B: Lokale Installation
+
+### 1. Repository klonen
 
 ```bash
 git clone https://github.com/betaxr/cockpit-vibe.git
@@ -16,106 +36,122 @@ cd cockpit-vibe
 pnpm install
 ```
 
-## 2. Environment Variables
+### 2. MySQL Datenbank
 
-Erstelle eine `.env` Datei im Projektroot mit folgenden Variablen:
+Du brauchst eine MySQL-Datenbank. Optionen:
 
-```env
-# =============================================================================
-# Database (MySQL/TiDB)
-# =============================================================================
-DATABASE_URL=mysql://user:password@host:3306/database_name
-
-# =============================================================================
-# Authentication
-# =============================================================================
-# JWT Secret für Session-Cookies (min. 32 Zeichen, zufällig generieren)
-JWT_SECRET=your-super-secret-jwt-key-min-32-chars
-
-# Manus OAuth Configuration
-VITE_APP_ID=your-manus-app-id
-OAUTH_SERVER_URL=https://api.manus.im
-VITE_OAUTH_PORTAL_URL=https://manus.im/login
-
-# Owner Information (für Admin-Rechte)
-OWNER_OPEN_ID=your-manus-open-id
-OWNER_NAME=Your Name
-
-# =============================================================================
-# Manus Built-in APIs (optional)
-# =============================================================================
-BUILT_IN_FORGE_API_URL=https://api.manus.im
-BUILT_IN_FORGE_API_KEY=your-forge-api-key
-
-# Frontend Forge API
-VITE_FRONTEND_FORGE_API_URL=https://api.manus.im
-VITE_FRONTEND_FORGE_API_KEY=your-frontend-forge-api-key
-
-# =============================================================================
-# App Configuration
-# =============================================================================
-VITE_APP_TITLE=Cockpit Vibe
-VITE_APP_LOGO=/logo.svg
-
-# Analytics (optional)
-VITE_ANALYTICS_ENDPOINT=
-VITE_ANALYTICS_WEBSITE_ID=
-
-# =============================================================================
-# Development
-# =============================================================================
-NODE_ENV=development
-PORT=3000
+**Lokal installiert:**
+```bash
+mysql -u root -p
+CREATE DATABASE cockpit_vibe;
+CREATE USER 'cockpit'@'localhost' IDENTIFIED BY 'dein-passwort';
+GRANT ALL PRIVILEGES ON cockpit_vibe.* TO 'cockpit'@'localhost';
 ```
 
-## 3. Variablen erklärt
+**Mit Docker (nur DB):**
+```bash
+docker run -d \
+  --name cockpit-mysql \
+  -e MYSQL_ROOT_PASSWORD=root \
+  -e MYSQL_DATABASE=cockpit_vibe \
+  -e MYSQL_USER=cockpit \
+  -e MYSQL_PASSWORD=cockpitpassword \
+  -p 3306:3306 \
+  mysql:8.0
+```
 
-| Variable | Beschreibung | Erforderlich |
-|----------|--------------|--------------|
-| `DATABASE_URL` | MySQL/TiDB Connection String | ✅ Ja |
-| `JWT_SECRET` | Secret für Session-Cookies (min. 32 Zeichen) | ✅ Ja |
-| `VITE_APP_ID` | Manus OAuth App ID | ✅ Ja |
-| `OAUTH_SERVER_URL` | Manus OAuth Backend URL | ✅ Ja |
-| `VITE_OAUTH_PORTAL_URL` | Manus Login Portal URL | ✅ Ja |
-| `OWNER_OPEN_ID` | Deine Manus Open ID (für Admin-Rechte) | ✅ Ja |
-| `OWNER_NAME` | Dein Name | ❌ Optional |
-| `BUILT_IN_FORGE_API_URL` | Manus API URL für LLM/Storage | ❌ Optional |
-| `BUILT_IN_FORGE_API_KEY` | Manus API Key (Server-side) | ❌ Optional |
-| `VITE_FRONTEND_FORGE_API_*` | Manus API für Frontend | ❌ Optional |
-| `VITE_APP_TITLE` | App-Titel | ❌ Optional |
-| `VITE_APP_LOGO` | Logo-Pfad | ❌ Optional |
+### 3. Environment Variables
 
-## 4. Datenbank einrichten
+Erstelle eine `.env` Datei im Projektroot:
+
+```env
+# ============================================
+# ERFORDERLICH
+# ============================================
+
+# MySQL Datenbank-Verbindung
+DATABASE_URL=mysql://cockpit:cockpitpassword@localhost:3306/cockpit_vibe
+
+# JWT Secret für Sessions (min. 32 Zeichen)
+# Generieren mit: openssl rand -base64 32
+JWT_SECRET=dein-super-geheimer-schluessel-mindestens-32-zeichen
+
+# ============================================
+# OPTIONAL
+# ============================================
+
+# Entwicklungsmodus
+NODE_ENV=development
+
+# Port (Standard: 3000)
+PORT=3000
+
+# Standalone-Modus aktivieren (keine Manus-APIs)
+STANDALONE_MODE=true
+```
+
+### 4. Datenbank-Schema erstellen
 
 ```bash
-# Schema zur Datenbank pushen
 pnpm db:push
 ```
 
-## 5. Entwicklungsserver starten
+### 5. Entwicklungsserver starten
 
 ```bash
 pnpm dev
 ```
 
-Die App läuft dann auf `http://localhost:3000`
-
-## 6. Tests ausführen
-
-```bash
-pnpm test
-```
-
-## Hinweise
-
-- Die `.env` Datei **niemals committen** (ist in `.gitignore`)
-- Für Produktion andere Secrets verwenden
-- JWT_SECRET sollte ein zufälliger String sein (z.B. `openssl rand -base64 32`)
+Die App läuft auf `http://localhost:3000`
 
 ## Test-Login
 
-Für lokale Entwicklung ohne Manus OAuth:
-- Username: `admin`
-- Password: `admin`
+Für lokale Entwicklung:
+- **Username:** `admin`
+- **Password:** `admin`
 
-Dies erstellt einen Test-Admin-User in der Datenbank.
+Dies erstellt automatisch einen Admin-User.
+
+## Variablen-Referenz
+
+| Variable | Erforderlich | Beschreibung |
+|----------|--------------|--------------|
+| `DATABASE_URL` | ✅ | MySQL Connection String |
+| `JWT_SECRET` | ✅ | Session-Secret (min. 32 Zeichen) |
+| `NODE_ENV` | ❌ | `development` oder `production` |
+| `PORT` | ❌ | Server-Port (Standard: 3000) |
+| `STANDALONE_MODE` | ❌ | `true` für Betrieb ohne Manus |
+
+## Troubleshooting
+
+### "Connection refused" bei MySQL
+
+```bash
+# Prüfe ob MySQL läuft
+docker ps | grep mysql
+# oder
+systemctl status mysql
+```
+
+### "JWT_SECRET must be at least 32 characters"
+
+Generiere einen neuen Secret:
+```bash
+openssl rand -base64 32
+```
+
+### Tests schlagen fehl
+
+```bash
+# Prüfe ob alle Dependencies installiert sind
+pnpm install
+
+# Tests ausführen
+pnpm test
+```
+
+## Nächste Schritte
+
+1. **Eigene User anlegen**: Aktuell nur Test-Login, erweitere `standaloneAuth.ts`
+2. **Echte Daten**: Ersetze `seedData.ts` durch Datenbank-Abfragen
+3. **Deployment**: Nutze `docker-compose.yml` oder baue mit `Dockerfile`
