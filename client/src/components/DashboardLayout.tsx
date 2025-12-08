@@ -233,7 +233,10 @@ function DashboardLayoutContent({
             
             {/* Edit Mode Toggle */}
             {!isCollapsed && (
-              <div className="px-4 py-4 mt-auto border-t border-[oklch(0.5_0.12_45/20%)]">
+              <div
+                className="px-4 py-4 mt-auto border-t"
+                style={{ borderColor: "color-mix(in oklch, var(--color-border) 40%, transparent)" }}
+              >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 text-sm text-white/60">
                     <GripVertical className="h-4 w-4 opacity-50" />
@@ -242,7 +245,7 @@ function DashboardLayoutContent({
                   <Switch
                     checked={isEditMode}
                     onCheckedChange={setEditMode}
-                    className="data-[state=checked]:bg-[oklch(0.55_0.15_45)]"
+                    className="data-[state=checked]:bg-[color:var(--color-primary)]"
                   />
                 </div>
                 {isEditMode && (

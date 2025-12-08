@@ -169,16 +169,10 @@ export default function DraggableModule({
   return (
     <div
       ref={moduleRef}
-      className={`
-        absolute
-        bg-gradient-to-br from-[oklch(0.18_0.03_50/70%)] to-[oklch(0.12_0.02_50/60%)]
-        backdrop-blur-xl
-        border-2 border-[oklch(0.55_0.15_45/40%)]
-        rounded-xl
-        transition-shadow duration-300
-        ${isDragging ? "shadow-[0_12px_50px_oklch(0.5_0.15_45/25%)] border-[oklch(0.7_0.18_50/60%)]" : ""}
-        ${className}
-      `}
+      className={cn(
+        "absolute backdrop-blur-xl border-2 rounded-xl transition-shadow duration-300",
+        className
+      )}
       style={{
         left: position.x,
         top: position.y,
@@ -186,14 +180,26 @@ export default function DraggableModule({
         height: size.height,
         zIndex: isDragging ? 100 : 10,
         transform: isDragging ? "scale(1.01)" : "scale(1)",
+        backgroundImage:
+          "linear-gradient(to bottom right, color-mix(in oklch, var(--color-card) 70%, transparent), color-mix(in oklch, var(--color-card) 60%, transparent))",
+        borderColor: isDragging
+          ? "color-mix(in oklch, var(--color-primary) 60%, transparent)"
+          : "color-mix(in oklch, var(--color-border) 40%, transparent)",
+        boxShadow: isDragging
+          ? "0 12px 50px color-mix(in oklch, var(--color-primary) 25%, transparent)"
+          : undefined,
       }}
     >
       {/* Subtle inner glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.35_0.1_45/8%)] to-transparent pointer-events-none rounded-xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[color:color-mix(in_oklch,_var(--color-primary)_8%,_transparent)] to-transparent pointer-events-none rounded-xl" />
       
       {/* Header with drag handle */}
       <div 
-        className="relative z-10 px-4 py-3 border-b border-[oklch(0.5_0.12_45/25%)] flex items-center justify-between rounded-t-xl bg-[oklch(0.2_0.035_50/50%)]"
+        className="relative z-10 px-4 py-3 border-b flex items-center justify-between rounded-t-xl"
+        style={{
+          borderColor: "color-mix(in oklch, var(--color-border) 70%, transparent)",
+          background: "color-mix(in oklch, var(--color-card) 70%, transparent)",
+        }}
       >
         <div
           className="flex items-center gap-2 cursor-grab active:cursor-grabbing flex-1"
@@ -220,7 +226,10 @@ export default function DraggableModule({
         className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize opacity-0 hover:opacity-100 transition-opacity"
         onMouseDown={handleResizeStart}
       >
-        <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-[oklch(0.6_0.15_45/60%)] rounded-br" />
+        <div
+          className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 rounded-br"
+          style={{ borderColor: "color-mix(in oklch, var(--color-primary) 60%, transparent)" }}
+        />
       </div>
     </div>
   );
@@ -235,8 +244,8 @@ export function GridBackground({ show = true }: { show?: boolean }) {
       className="absolute inset-0 pointer-events-none opacity-10"
       style={{
         backgroundImage: `
-          linear-gradient(to right, oklch(0.5 0.12 45 / 20%) 1px, transparent 1px),
-          linear-gradient(to bottom, oklch(0.5 0.12 45 / 20%) 1px, transparent 1px)
+          linear-gradient(to right, color-mix(in oklch, var(--color-border) 20%, transparent) 1px, transparent 1px),
+          linear-gradient(to bottom, color-mix(in oklch, var(--color-border) 20%, transparent) 1px, transparent 1px)
         `,
         backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
       }}

@@ -10,8 +10,8 @@ interface FullBodyAgentProps {
 
 export function FullBodyAgent({ 
   className, 
-  fillColor = "#f97316",
-  outlineColor = "#f97316",
+  fillColor = "var(--color-primary)",
+  outlineColor = "var(--color-primary)",
   fillLevel = 100,
   size = "md" 
 }: FullBodyAgentProps) {

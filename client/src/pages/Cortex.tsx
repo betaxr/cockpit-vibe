@@ -26,7 +26,10 @@ export default function Cortex() {
             <p className="text-white/50 mt-1">Wissensdatenbank und Dokumentation</p>
           </div>
           
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[oklch(0.55_0.15_45)] text-white hover:bg-[oklch(0.6_0.17_45)] transition-colors">
+          <button
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white transition-colors"
+            style={{ background: "var(--color-primary)" }}
+          >
             <Plus className="w-4 h-4" />
             Neuer Eintrag
           </button>
@@ -40,7 +43,11 @@ export default function Cortex() {
             placeholder="Suche in Cortex..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-xl bg-[oklch(0.18_0.03_50/70%)] border border-[oklch(0.5_0.12_45/30%)] text-white placeholder:text-white/40 focus:outline-none focus:border-[oklch(0.55_0.15_45/60%)]"
+            className="w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder:text-white/40 focus:outline-none"
+            style={{
+              background: "color-mix(in oklch, var(--color-card) 85%, transparent)",
+              border: "1px solid color-mix(in oklch, var(--color-border) 80%, transparent)",
+            }}
           />
         </div>
 
@@ -56,7 +63,10 @@ export default function Cortex() {
                 <Brain className="w-16 h-16 mx-auto mb-4 opacity-20 text-white" />
                 <h3 className="text-lg font-medium text-white/80 mb-2">Cortex ist leer</h3>
                 <p className="text-white/50 mb-4">Fügen Sie Wissen hinzu, um Ihre Agenten zu verbessern</p>
-                <button className="px-4 py-2 rounded-lg bg-[oklch(0.55_0.15_45/30%)] text-white/70 hover:bg-[oklch(0.55_0.15_45/50%)] transition-colors">
+                <button
+                  className="px-4 py-2 rounded-lg text-white/70 transition-colors"
+                  style={{ background: "color-mix(in oklch, var(--color-primary) 30%, transparent)" }}
+                >
                   Ersten Eintrag erstellen
                 </button>
               </div>

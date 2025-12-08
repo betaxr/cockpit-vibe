@@ -11,6 +11,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { teams } from "../../drizzle/schema";
 import { seedTeams, seedAgents } from "../seedData";
+import { THEME_COLORS } from "../../shared/themeColors";
 
 export type TeamWithStats = {
   id: number;
@@ -63,7 +64,7 @@ export async function getAllTeams(): Promise<TeamWithStats[]> {
       customerType: team.customerType,
       project: team.project,
       agentCount: team.agentCount || 0,
-      color: "#f97316", // Default color
+      color: THEME_COLORS.primary, // Default color
       status: "active" as const,
     }));
   } catch (error) {

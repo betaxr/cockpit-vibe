@@ -70,16 +70,26 @@ export default function Agents() {
                 const utilization = agent.status === 'active' ? 85 : 
                                     agent.status === 'busy' ? 95 : 30;
                 
+                const statusColor =
+                  agent.status === 'active'
+                    ? 'var(--success)'
+                    : agent.status === 'busy'
+                      ? 'var(--color-secondary)'
+                      : 'var(--muted)';
                 return (
                   <button
                     key={agent.id}
                     onClick={() => setLocation(`/agent/${agent.id}`)}
-                    className="flex items-center gap-5 p-4 rounded-2xl bg-[oklch(0.16_0.02_45/50%)] hover:bg-[oklch(0.20_0.03_45/60%)] border border-[oklch(0.55_0.15_45/15%)] transition-all group text-left"
+                    className="flex items-center gap-5 p-4 rounded-2xl transition-all group text-left border"
+                    style={{
+                      background: "color-mix(in oklch, var(--color-card) 90%, transparent)",
+                      borderColor: "color-mix(in oklch, var(--color-border) 100%, transparent)",
+                    }}
                   >
                     {/* Team Portrait */}
                     <div className="shrink-0">
                       <TeamPortrait 
-                        color={agent.avatarColor || '#f97316'}
+                        color={agent.avatarColor || 'var(--color-primary)'}
                         agentCount={agent.agentCount || 1}
                         size="md"
                       />
@@ -97,16 +107,11 @@ export default function Agents() {
                           <Clock className="w-3 h-3 text-white/30" />
                           <span className="text-white/50">{agent.hoursPerDay}h/Tag</span>
                         </div>
-                        <div className={`flex items-center gap-1 ${
-                          agent.status === 'active' ? 'text-green-400' :
-                          agent.status === 'busy' ? 'text-[oklch(0.7_0.18_50)]' :
-                          'text-white/40'
-                        }`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${
-                            agent.status === 'active' ? 'bg-green-500' :
-                            agent.status === 'busy' ? 'bg-[oklch(0.7_0.18_50)]' :
-                            'bg-gray-500'
-                          }`} />
+                        <div className="flex items-center gap-1 text-xs" style={{ color: statusColor }}>
+                          <div
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: statusColor }}
+                          />
                           <span>{agent.status === 'active' ? 'Aktiv' : agent.status === 'busy' ? 'Beschäftigt' : 'Inaktiv'}</span>
                         </div>
                       </div>
@@ -139,8 +144,11 @@ export default function Agents() {
                   <p className="text-white/40 text-xs">Gesamt Agenten</p>
                   <p className="text-xl font-semibold text-white mt-0.5">{stats?.totalAgents || 0}</p>
                 </div>
-                <div className="p-2.5 rounded-xl bg-[oklch(0.55_0.15_45/10%)]">
-                  <Users className="w-5 h-5 text-[oklch(0.7_0.18_50/70%)]" />
+                <div
+                  className="p-2.5 rounded-xl"
+                  style={{ background: "color-mix(in oklch, var(--color-primary) 10%, transparent)" }}
+                >
+                  <Users className="w-5 h-5" style={{ color: "color-mix(in oklch, var(--color-primary) 70%, transparent)" }} />
                 </div>
               </div>
             </ModuleCard>

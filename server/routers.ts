@@ -250,7 +250,7 @@ export const appRouter = router({
           title: entry.title,
           agentId: entry.agentIndex + 1,
           agentName: agent?.name || 'Unknown',
-          agentColor: agent?.avatarColor || '#888',
+          agentColor: agent?.avatarColor || 'var(--color-muted)',
           processId: entry.processIndex !== undefined ? entry.processIndex + 1 : null,
           processName: process?.name || entry.title,
           startHour: entry.startHour,

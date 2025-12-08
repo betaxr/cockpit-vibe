@@ -32,7 +32,7 @@ function ScheduleEntry({
       style={{
         top: `${startHour * 48}px`,
         height: `${height}px`,
-        backgroundColor: color || 'oklch(0.55 0.15 45)',
+        backgroundColor: color || 'var(--color-primary)',
         minHeight: '40px',
       }}
     >
@@ -66,7 +66,7 @@ function DayView({
           <div 
             key={hour} 
             className={`h-12 flex items-start justify-end pr-3 font-mono ${
-              hour === currentHour ? 'text-[oklch(0.7_0.18_50)]' : ''
+              hour === currentHour ? 'text-[color:var(--color-primary)]' : ''
             }`}
           >
             {hour.toString().padStart(2, '0')}:00
@@ -82,18 +82,24 @@ function DayView({
             key={hour} 
             className={`h-12 border-t ${
               hour === currentHour 
-                ? 'border-[oklch(0.7_0.18_50/50%)]' 
-                : 'border-[oklch(0.5_0.12_45/10%)]'
+                ? 'border-[color:color-mix(in_oklch,_var(--color-primary)_50%,_transparent)]' 
+                : 'border-[color:color-mix(in_oklch,_var(--color-border)_10%,_transparent)]'
             }`}
           />
         ))}
         
         {/* Current time indicator */}
         <div 
-          className="absolute left-0 right-0 h-0.5 bg-[oklch(0.7_0.18_50)] z-10"
-          style={{ top: `${currentHour * 48 + (new Date().getMinutes() / 60) * 48}px` }}
+          className="absolute left-0 right-0 h-0.5 z-10"
+          style={{ 
+            background: "var(--color-primary)",
+            top: `${currentHour * 48 + (new Date().getMinutes() / 60) * 48}px` 
+          }}
         >
-          <div className="absolute -left-2 -top-1.5 w-3 h-3 rounded-full bg-[oklch(0.7_0.18_50)]" />
+          <div
+            className="absolute -left-2 -top-1.5 w-3 h-3 rounded-full"
+            style={{ background: "var(--color-primary)" }}
+          />
         </div>
         
         {/* Entries */}
@@ -139,17 +145,17 @@ function WeekView({
             {/* Day Header */}
             <div className={`text-center py-2 mb-2 rounded-lg ${
               dayIndex === adjustedCurrentDay 
-                ? 'bg-[oklch(0.55_0.15_45)] text-white' 
+                ? 'bg-[color:var(--color-primary)] text-white' 
                 : 'text-white/60'
             }`}>
               <div className="text-xs font-medium">{dayData.day.slice(0, 2)}</div>
             </div>
             
             {/* Day Timeline */}
-            <div className="relative flex-1 bg-[oklch(0.15_0.02_45/30%)] rounded-lg">
+            <div className="relative flex-1 bg-[color:color-mix(in_oklch,_var(--color-card)_30%,_transparent)] rounded-lg">
               {/* Hour lines */}
               {hours.map(hour => (
-                <div key={hour} className="h-6 border-t border-[oklch(0.5_0.12_45/5%)]" />
+                <div key={hour} className="h-6 border-t border-[color:color-mix(in_oklch,_var(--color-border)_10%,_transparent)]" />
               ))}
               
               {/* Entries */}
@@ -166,7 +172,7 @@ function WeekView({
                       style={{
                         top: `${top}px`,
                         height: `${height}px`,
-                        backgroundColor: entry.color || 'oklch(0.55 0.15 45)',
+                        backgroundColor: entry.color || 'var(--color-primary)',
                         minHeight: '20px',
                       }}
                     >
@@ -298,8 +304,8 @@ export default function Wochenplan() {
                   onClick={() => setSelectedAgentId(null)}
                   className={`px-4 py-2 rounded-xl text-sm transition-all ${
                     selectedAgentId === null
-                      ? 'bg-[oklch(0.55_0.15_45)] text-white'
-                      : 'bg-[oklch(0.2_0.03_45/50%)] text-white/60 hover:text-white/80'
+                      ? 'bg-[color:var(--color-primary)] text-white'
+                      : 'bg-[color:color-mix(in_oklch,_var(--color-card)_60%,_transparent)] text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]'
                   }`}
                 >
                   Alle
@@ -310,8 +316,8 @@ export default function Wochenplan() {
                     onClick={() => setSelectedAgentId(agent.id)}
                     className={`px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-2 ${
                       selectedAgentId === agent.id
-                        ? 'bg-[oklch(0.55_0.15_45)] text-white'
-                        : 'bg-[oklch(0.2_0.03_45/50%)] text-white/60 hover:text-white/80'
+                        ? 'bg-[color:var(--color-primary)] text-white'
+                        : 'bg-[color:color-mix(in_oklch,_var(--color-card)_60%,_transparent)] text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]'
                     }`}
                   >
                     <div 
@@ -332,8 +338,8 @@ export default function Wochenplan() {
                 onClick={() => setViewMode('day')}
                 className={`px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-2 ${
                   viewMode === 'day'
-                    ? 'bg-[oklch(0.55_0.15_45)] text-white'
-                    : 'bg-[oklch(0.2_0.03_45/50%)] text-white/60 hover:text-white/80'
+                    ? 'bg-[color:var(--color-primary)] text-white'
+                    : 'bg-[color:color-mix(in_oklch,_var(--color-card)_60%,_transparent)] text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]'
                 }`}
               >
                 <Clock className="w-4 h-4" />
@@ -343,8 +349,8 @@ export default function Wochenplan() {
                 onClick={() => setViewMode('week')}
                 className={`px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-2 ${
                   viewMode === 'week'
-                    ? 'bg-[oklch(0.55_0.15_45)] text-white'
-                    : 'bg-[oklch(0.2_0.03_45/50%)] text-white/60 hover:text-white/80'
+                    ? 'bg-[color:var(--color-primary)] text-white'
+                    : 'bg-[color:color-mix(in_oklch,_var(--color-card)_60%,_transparent)] text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]'
                 }`}
               >
                 <Calendar className="w-4 h-4" />
@@ -359,7 +365,7 @@ export default function Wochenplan() {
           <div className="flex items-center justify-between">
             <button 
               onClick={() => navigateDate('prev')}
-              className="p-2 rounded-lg hover:bg-[oklch(0.5_0.12_45/20%)] text-white/50 hover:text-white/80 transition-colors"
+              className="p-2 rounded-lg hover:bg-[color:color-mix(in_oklch,_var(--color-border)_20%,_transparent)] text-white/50 hover:text-white/80 transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -368,7 +374,7 @@ export default function Wochenplan() {
             </span>
             <button 
               onClick={() => navigateDate('next')}
-              className="p-2 rounded-lg hover:bg-[oklch(0.5_0.12_45/20%)] text-white/50 hover:text-white/80 transition-colors"
+              className="p-2 rounded-lg hover:bg-[color:color-mix(in_oklch,_var(--color-border)_20%,_transparent)] text-white/50 hover:text-white/80 transition-colors"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -400,7 +406,7 @@ export default function Wochenplan() {
               <span className="text-white/60">Schnellzugriff</span>
               <button
                 onClick={() => setLocation(`/agent/${selectedAgentId}`)}
-                className="px-4 py-2 rounded-xl bg-[oklch(0.55_0.15_45)] text-white text-sm hover:bg-[oklch(0.6_0.15_45)] transition-colors"
+                className="px-4 py-2 rounded-xl bg-[color:var(--color-primary)] text-white text-sm hover:bg-[color:color-mix(in_oklch,_var(--color-primary)_85%,_transparent)] transition-colors"
               >
                 Agent-Details öffnen
               </button>

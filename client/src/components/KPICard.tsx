@@ -62,18 +62,18 @@ export default function KPICard({
         relative overflow-hidden
         ${isSecondary 
           ? "bg-transparent border-0" 
-          : "bg-gradient-to-br from-[oklch(0.20_0.03_45)] to-[oklch(0.14_0.02_50)] border border-[oklch(0.55_0.15_45/40%)]"
+          : "bg-gradient-to-br from-[color:color-mix(in_oklch,_var(--color-card)_70%,_transparent)] to-[color:color-mix(in_oklch,_var(--color-card)_55%,_transparent)] border border-[color:color-mix(in_oklch,_var(--color-border)_70%,_transparent)]"
         }
         rounded-xl
         ${s.padding} ${s.minWidth}
         transition-all duration-200
-        ${!isSecondary && "hover:border-[oklch(0.60_0.16_45/60%)]"}
+        ${!isSecondary && "hover:border-[color:color-mix(in_oklch,_var(--color-primary)_50%,_var(--color-border)_50%)]"}
         ${className}
       `}
     >
       {/* Background glow effect - subtle */}
       {!isSecondary && (
-        <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.4_0.12_45/5%)] to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[color:color-mix(in_oklch,_var(--color-primary)_10%,_transparent)] to-transparent pointer-events-none" />
       )}
       
       {/* Icon - minimalistic with low opacity */}
@@ -106,7 +106,7 @@ export default function KPICard({
             </div>
             
             {/* Secondary value */}
-            <div className="border-l border-[oklch(0.5_0.12_45/20%)] pl-4">
+            <div className="border-l border-[color:color-mix(in_oklch,_var(--color-border)_40%,_transparent)] pl-4">
               <div className="flex items-baseline gap-0.5">
                 <span className={`font-semibold tracking-tight text-white/80 ${sizeClasses.sm.value}`}>
                   {secondaryValue}
@@ -160,17 +160,17 @@ export function MultiKPICard({ items, className = "" }: MultiKPICardProps) {
     <div
       className={`
         relative overflow-hidden
-        bg-gradient-to-br from-[oklch(0.20_0.03_45)] to-[oklch(0.14_0.02_50)]
-        border border-[oklch(0.55_0.15_45/40%)]
+        bg-gradient-to-br from-[color:color-mix(in_oklch,_var(--color-card)_70%,_transparent)] to-[color:color-mix(in_oklch,_var(--color-card)_55%,_transparent)]
+        border border-[color:color-mix(in_oklch,_var(--color-border)_70%,_transparent)]
         rounded-xl p-4
         transition-all duration-200
-        hover:border-[oklch(0.60_0.16_45/60%)]
+        hover:border-[color:color-mix(in_oklch,_var(--color-primary)_50%,_var(--color-border)_50%)]
         ${className}
       `}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.4_0.12_45/5%)] to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[color:color-mix(in_oklch,_var(--color-primary)_10%,_transparent)] to-transparent pointer-events-none" />
       
-      <div className="relative z-10 flex divide-x divide-[oklch(0.5_0.12_45/20%)]">
+      <div className="relative z-10 flex divide-x divide-[color:color-mix(in_oklch,_var(--color-border)_40%,_transparent)]">
         {items.map((item, index) => (
           <div key={index} className={`flex-1 ${index > 0 ? "pl-4" : ""} ${index < items.length - 1 ? "pr-4" : ""}`}>
             <div className="flex items-baseline gap-0.5">

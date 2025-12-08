@@ -23,10 +23,10 @@ export default function Arbeitsplaetze() {
   
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'physical': return <Monitor className="w-6 h-6 text-[oklch(0.7_0.18_50)]" />;
+      case 'physical': return <Monitor className="w-6 h-6 text-[color:var(--color-primary)]" />;
       case 'virtual': return <Cloud className="w-6 h-6 text-blue-400" />;
       case 'server': return <Server className="w-6 h-6 text-purple-400" />;
-      default: return <Monitor className="w-6 h-6 text-[oklch(0.7_0.18_50)]" />;
+      default: return <Monitor className="w-6 h-6 text-[color:var(--color-primary)]" />;
     }
   };
   
@@ -80,7 +80,10 @@ export default function Arbeitsplaetze() {
                 {/* Header */}
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-xl bg-[oklch(0.25_0.04_50/50%)]">
+                    <div
+                      className="p-3 rounded-xl"
+                      style={{ background: "color-mix(in oklch, var(--color-card) 60%, transparent)" }}
+                    >
                       {getTypeIcon(workspace.type)}
                     </div>
                     <div>

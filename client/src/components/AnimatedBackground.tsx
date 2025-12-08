@@ -51,10 +51,10 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
         className="absolute inset-0"
         style={{
           background: `
-            radial-gradient(ellipse 80% 50% at 20% 40%, oklch(0.35 0.12 40 / 40%) 0%, transparent 50%),
-            radial-gradient(ellipse 60% 40% at 80% 60%, oklch(0.30 0.10 50 / 30%) 0%, transparent 50%),
-            radial-gradient(ellipse 100% 80% at 50% 100%, oklch(0.25 0.08 45 / 50%) 0%, transparent 40%),
-            linear-gradient(180deg, oklch(0.12 0.02 45) 0%, oklch(0.08 0.01 40) 100%)
+            radial-gradient(ellipse 80% 50% at 20% 40%, var(--bg-spot-1) 0%, transparent 50%),
+            radial-gradient(ellipse 60% 40% at 80% 60%, var(--bg-spot-2) 0%, transparent 50%),
+            radial-gradient(ellipse 100% 80% at 50% 100%, var(--bg-spot-3) 0%, transparent 40%),
+            linear-gradient(180deg, color-mix(in oklch, var(--color-primary) 12%, var(--background) 88%) 0%, color-mix(in oklch, var(--color-primary) 4%, var(--background) 96%) 100%)
           `,
         }}
       />
@@ -69,7 +69,7 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
             top: `${circle.y}%`,
             width: circle.size,
             height: circle.size,
-            background: `radial-gradient(circle, oklch(0.55 0.18 45 / ${circle.opacity}) 0%, transparent 70%)`,
+            background: `radial-gradient(circle, color-mix(in oklch, var(--color-primary) ${Math.round(circle.opacity * 100)}%, transparent) 0%, transparent 70%)`,
             filter: `blur(${circle.size * 0.3}px)`,
             transform: 'translate(-50%, -50%)',
             animation: `float-${circle.id} ${circle.duration}s ease-in-out infinite`,

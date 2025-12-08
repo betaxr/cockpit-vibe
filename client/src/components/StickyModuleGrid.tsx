@@ -180,22 +180,33 @@ export function StickyModule({
       onDragEnd={handleDragEnd}
       className={`
         relative overflow-hidden
-        bg-gradient-to-br from-[oklch(0.18_0.03_50/70%)] to-[oklch(0.12_0.02_50/60%)]
+        bg-gradient-to-br from-[color:color-mix(in_oklch,_var(--color-card)_75%,_transparent)] to-[color:color-mix(in_oklch,_var(--color-card)_60%,_transparent)]
         backdrop-blur-xl
-        border-2 ${isEditMode ? "border-[oklch(0.55_0.15_45/50%)]" : "border-[oklch(0.5_0.12_45/35%)]"}
+        border-2
         rounded-xl
         transition-all duration-300
         ${isDragging ? "opacity-50 scale-95" : ""}
-        ${isEditMode ? "cursor-grab active:cursor-grabbing hover:border-[oklch(0.7_0.18_50/60%)]" : ""}
+        ${isEditMode ? "cursor-grab active:cursor-grabbing" : ""}
         ${className}
       `}
-      style={gridStyle}
+      style={{
+        ...gridStyle,
+        borderColor: isEditMode
+          ? "color-mix(in oklch, var(--color-primary) 50%, transparent)"
+          : "color-mix(in oklch, var(--color-border) 70%, transparent)",
+      }}
     >
       {/* Inner glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.35_0.1_45/8%)] to-transparent pointer-events-none rounded-xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[color:color-mix(in_oklch,_var(--color-primary)_8%,_transparent)] to-transparent pointer-events-none rounded-xl" />
       
       {/* Header */}
-      <div className="relative z-10 px-4 py-3 border-b border-[oklch(0.5_0.12_45/25%)] flex items-center justify-between bg-[oklch(0.2_0.035_50/50%)] rounded-t-xl">
+      <div
+        className="relative z-10 px-4 py-3 border-b flex items-center justify-between rounded-t-xl"
+        style={{
+          borderColor: "color-mix(in oklch, var(--color-border) 70%, transparent)",
+          background: "color-mix(in oklch, var(--color-card) 70%, transparent)",
+        }}
+      >
         <div className="flex items-center gap-2">
           {isEditMode && (
             <GripVertical className="w-4 h-4 opacity-40" strokeWidth={1.5} />
@@ -205,7 +216,8 @@ export function StickyModule({
         </div>
         <button
           onClick={() => setIsMinimized(!isMinimized)}
-          className="p-1 rounded hover:bg-[oklch(0.5_0.12_45/20%)] text-white/40 hover:text-white/70 transition-colors"
+          className="p-1 rounded text-white/40 hover:text-white/70 transition-colors"
+          style={{ background: "color-mix(in oklch, var(--color-border) 30%, transparent)" }}
         >
           {isMinimized ? (
             <Maximize2 className="w-3.5 h-3.5" />
@@ -224,7 +236,10 @@ export function StickyModule({
 
       {/* Edit mode indicator */}
       {isEditMode && (
-        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[oklch(0.7_0.18_50)] animate-pulse" />
+        <div
+          className="absolute top-2 right-2 w-2 h-2 rounded-full animate-pulse"
+          style={{ background: "var(--color-primary)" }}
+        />
       )}
     </div>
   );
@@ -321,10 +336,10 @@ export function EditModeToggle({ className = "" }: EditModeToggleProps) {
         flex items-center gap-2
         transition-all duration-200
         ${isEditMode 
-          ? "bg-[oklch(0.55_0.15_45)] text-white" 
-          : "bg-[oklch(0.2_0.03_50/60%)] text-white/70 border border-[oklch(0.5_0.12_45/30%)]"
+          ? "bg-[color:var(--color-primary)] text-white" 
+          : "bg-[color:color-mix(in_oklch,_var(--color-card)_60%,_transparent)] text-white/70 border border-[color:color-mix(in_oklch,_var(--color-border)_40%,_transparent)]"
         }
-        hover:bg-[oklch(0.6_0.17_45)]
+        hover:bg-[color:color-mix(in_oklch,_var(--color-primary)_80%,_transparent)]
         ${className}
       `}
     >

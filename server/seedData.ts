@@ -11,17 +11,14 @@
  * - Processes: Automated tasks with success/failure statistics
  * - Schedule: 24-hour schedule entries linking agents to processes
  * 
- * **Color Coding:**
- * - Marketing: Yellow (#eab308)
- * - Verkauf: Orange (#f97316)
- * - Logistik: Green (#22c55e)
- * - Support: Blue (#3b82f6)
- * - Production: Pink (#ec4899)
+ * **Color Coding:** uses theme variables (no hardcoded hex)
  * 
  * @module server/seedData
  * @author Cockpit Vibe Team
  * @version 1.0.0
  */
+
+import { THEME_COLORS } from "../shared/themeColors";
 
 // Teams - Organizational units (each team has 1-5 agents)
 export const seedTeams = [
@@ -32,7 +29,7 @@ export const seedTeams = [
     customerType: "B2B, Partner",
     project: "Social Media & Kampagnen",
     agentCount: 3,
-    color: "#eab308",
+    color: THEME_COLORS.amber,
   },
   {
     name: "Verkauf",
@@ -41,7 +38,7 @@ export const seedTeams = [
     customerType: "B2C, Endkunden",
     project: "Kundenberatung & Verkauf",
     agentCount: 2,
-    color: "#f97316",
+    color: THEME_COLORS.primary,
   },
   {
     name: "Logistik",
@@ -50,7 +47,7 @@ export const seedTeams = [
     customerType: "Intern",
     project: "Wareneingang & Versand",
     agentCount: 4,
-    color: "#22c55e",
+    color: THEME_COLORS.success,
   },
   {
     name: "Support",
@@ -59,7 +56,7 @@ export const seedTeams = [
     customerType: "B2C, Reklamationen",
     project: "Kundenservice & Retouren",
     agentCount: 2,
-    color: "#3b82f6",
+    color: THEME_COLORS.info,
   },
   {
     name: "Production",
@@ -68,7 +65,7 @@ export const seedTeams = [
     customerType: "Intern",
     project: "Herstellung & Qualität",
     agentCount: 5,
-    color: "#ec4899",
+    color: THEME_COLORS.pink,
   },
 ];
 
@@ -80,7 +77,7 @@ export const seedAgents = [
     teamIndex: 0,
     status: "active" as const,
     hoursPerDay: 24,
-    avatarColor: "#eab308",
+    avatarColor: THEME_COLORS.amber,
     agentCount: 3, // 3 agents in this team
     capabilities: ["Social Media", "Content Creation", "Analytics"],
   },
@@ -90,7 +87,7 @@ export const seedAgents = [
     teamIndex: 1,
     status: "active" as const,
     hoursPerDay: 24,
-    avatarColor: "#f97316",
+    avatarColor: THEME_COLORS.primary,
     agentCount: 2,
     capabilities: ["Beratung", "Produktsuche", "Bestellungen"],
   },
@@ -100,7 +97,7 @@ export const seedAgents = [
     teamIndex: 2,
     status: "busy" as const,
     hoursPerDay: 24,
-    avatarColor: "#22c55e",
+    avatarColor: THEME_COLORS.success,
     agentCount: 4,
     capabilities: ["Inventur", "Versandvorbereitung", "Tracking"],
   },
@@ -110,7 +107,7 @@ export const seedAgents = [
     teamIndex: 3,
     status: "active" as const,
     hoursPerDay: 24,
-    avatarColor: "#3b82f6",
+    avatarColor: THEME_COLORS.info,
     agentCount: 2,
     capabilities: ["Ticketbearbeitung", "Retouren", "FAQ"],
   },
@@ -120,7 +117,7 @@ export const seedAgents = [
     teamIndex: 4,
     status: "idle" as const,
     hoursPerDay: 12,
-    avatarColor: "#ec4899",
+    avatarColor: THEME_COLORS.pink,
     agentCount: 5,
     capabilities: ["Herstellung", "Qualitätskontrolle", "Dokumentation"],
   },
@@ -273,38 +270,38 @@ export const seedProcesses = [
 // Schedule entries - What teams do throughout the day
 export const seedScheduleEntries = [
   // Marketing (Agent 0)
-  { agentIndex: 0, title: "Social Media Posting", startHour: 7, endHour: 8, color: "#c2410c", processIndex: 0 },
-  { agentIndex: 0, title: "Content Creation", startHour: 9, endHour: 11, color: "#78716c" },
-  { agentIndex: 0, title: "Social Media Posting", startHour: 12, endHour: 13, color: "#c2410c", processIndex: 0 },
-  { agentIndex: 0, title: "Analytics Review", startHour: 14, endHour: 15, color: "#a16207" },
-  { agentIndex: 0, title: "Newsletter-Versand", startHour: 16, endHour: 17, color: "#eab308", processIndex: 6 },
-  { agentIndex: 0, title: "Social Media Posting", startHour: 18, endHour: 19, color: "#c2410c", processIndex: 0 },
+  { agentIndex: 0, title: "Social Media Posting", startHour: 7, endHour: 8, color: THEME_COLORS.primary, processIndex: 0 },
+  { agentIndex: 0, title: "Content Creation", startHour: 9, endHour: 11, color: THEME_COLORS.muted },
+  { agentIndex: 0, title: "Social Media Posting", startHour: 12, endHour: 13, color: THEME_COLORS.primary, processIndex: 0 },
+  { agentIndex: 0, title: "Analytics Review", startHour: 14, endHour: 15, color: THEME_COLORS.accent },
+  { agentIndex: 0, title: "Newsletter-Versand", startHour: 16, endHour: 17, color: THEME_COLORS.amber, processIndex: 6 },
+  { agentIndex: 0, title: "Social Media Posting", startHour: 18, endHour: 19, color: THEME_COLORS.primary, processIndex: 0 },
   
   // Verkauf (Agent 1)
-  { agentIndex: 1, title: "Bestellbestätigung", startHour: 0, endHour: 1, color: "#c2410c", processIndex: 1 },
-  { agentIndex: 1, title: "Bestellbestätigung", startHour: 3, endHour: 4, color: "#c2410c", processIndex: 1 },
-  { agentIndex: 1, title: "Preisvergleich", startHour: 6, endHour: 7, color: "#a16207", processIndex: 5 },
-  { agentIndex: 1, title: "Bestellbestätigung", startHour: 9, endHour: 10, color: "#c2410c", processIndex: 1 },
-  { agentIndex: 1, title: "Kundenberatung", startHour: 10, endHour: 12, color: "#78716c" },
-  { agentIndex: 1, title: "Bestellbestätigung", startHour: 14, endHour: 15, color: "#c2410c", processIndex: 1 },
-  { agentIndex: 1, title: "Preisvergleich", startHour: 18, endHour: 19, color: "#a16207", processIndex: 5 },
-  { agentIndex: 1, title: "Bestellbestätigung", startHour: 21, endHour: 22, color: "#c2410c", processIndex: 1 },
+  { agentIndex: 1, title: "Bestellbestätigung", startHour: 0, endHour: 1, color: THEME_COLORS.primary, processIndex: 1 },
+  { agentIndex: 1, title: "Bestellbestätigung", startHour: 3, endHour: 4, color: THEME_COLORS.primary, processIndex: 1 },
+  { agentIndex: 1, title: "Preisvergleich", startHour: 6, endHour: 7, color: THEME_COLORS.accent, processIndex: 5 },
+  { agentIndex: 1, title: "Bestellbestätigung", startHour: 9, endHour: 10, color: THEME_COLORS.primary, processIndex: 1 },
+  { agentIndex: 1, title: "Kundenberatung", startHour: 10, endHour: 12, color: THEME_COLORS.muted },
+  { agentIndex: 1, title: "Bestellbestätigung", startHour: 14, endHour: 15, color: THEME_COLORS.primary, processIndex: 1 },
+  { agentIndex: 1, title: "Preisvergleich", startHour: 18, endHour: 19, color: THEME_COLORS.accent, processIndex: 5 },
+  { agentIndex: 1, title: "Bestellbestätigung", startHour: 21, endHour: 22, color: THEME_COLORS.primary, processIndex: 1 },
   
   // Logistik (Agent 2)
-  { agentIndex: 2, title: "Inventur-Check", startHour: 5, endHour: 6, color: "#22c55e", processIndex: 2 },
-  { agentIndex: 2, title: "Versandvorbereitung", startHour: 7, endHour: 9, color: "#c2410c", processIndex: 7 },
-  { agentIndex: 2, title: "Versandvorbereitung", startHour: 10, endHour: 12, color: "#c2410c", processIndex: 7 },
-  { agentIndex: 2, title: "Wareneingang", startHour: 13, endHour: 15, color: "#78716c" },
-  { agentIndex: 2, title: "Versandvorbereitung", startHour: 16, endHour: 18, color: "#c2410c", processIndex: 7 },
-  { agentIndex: 2, title: "Inventur-Check", startHour: 20, endHour: 21, color: "#22c55e", processIndex: 2 },
+  { agentIndex: 2, title: "Inventur-Check", startHour: 5, endHour: 6, color: THEME_COLORS.success, processIndex: 2 },
+  { agentIndex: 2, title: "Versandvorbereitung", startHour: 7, endHour: 9, color: THEME_COLORS.primary, processIndex: 7 },
+  { agentIndex: 2, title: "Versandvorbereitung", startHour: 10, endHour: 12, color: THEME_COLORS.primary, processIndex: 7 },
+  { agentIndex: 2, title: "Wareneingang", startHour: 13, endHour: 15, color: THEME_COLORS.muted },
+  { agentIndex: 2, title: "Versandvorbereitung", startHour: 16, endHour: 18, color: THEME_COLORS.primary, processIndex: 7 },
+  { agentIndex: 2, title: "Inventur-Check", startHour: 20, endHour: 21, color: THEME_COLORS.success, processIndex: 2 },
   
   // Support (Agent 3)
-  { agentIndex: 3, title: "Ticket-Triage", startHour: 8, endHour: 9, color: "#3b82f6", processIndex: 3 },
-  { agentIndex: 3, title: "Retouren-Verarbeitung", startHour: 9, endHour: 11, color: "#a16207", processIndex: 4 },
-  { agentIndex: 3, title: "Ticket-Triage", startHour: 12, endHour: 13, color: "#3b82f6", processIndex: 3 },
-  { agentIndex: 3, title: "Kundenservice", startHour: 14, endHour: 16, color: "#78716c" },
-  { agentIndex: 3, title: "Ticket-Triage", startHour: 17, endHour: 18, color: "#3b82f6", processIndex: 3 },
-  { agentIndex: 3, title: "Retouren-Verarbeitung", startHour: 19, endHour: 20, color: "#a16207", processIndex: 4 },
+  { agentIndex: 3, title: "Ticket-Triage", startHour: 8, endHour: 9, color: THEME_COLORS.info, processIndex: 3 },
+  { agentIndex: 3, title: "Retouren-Verarbeitung", startHour: 9, endHour: 11, color: THEME_COLORS.accent, processIndex: 4 },
+  { agentIndex: 3, title: "Ticket-Triage", startHour: 12, endHour: 13, color: THEME_COLORS.info, processIndex: 3 },
+  { agentIndex: 3, title: "Kundenservice", startHour: 14, endHour: 16, color: THEME_COLORS.muted },
+  { agentIndex: 3, title: "Ticket-Triage", startHour: 17, endHour: 18, color: THEME_COLORS.info, processIndex: 3 },
+  { agentIndex: 3, title: "Retouren-Verarbeitung", startHour: 19, endHour: 20, color: THEME_COLORS.accent, processIndex: 4 },
 ];
 
 // Helper to get process reliability

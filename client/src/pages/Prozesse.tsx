@@ -13,7 +13,7 @@ export default function Prozesse() {
   
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'running': return <Play className="w-4 h-4 text-[oklch(0.7_0.18_50)]" />;
+      case 'running': return <Play className="w-4 h-4 text-[color:var(--color-primary)]" />;
       case 'idle': return <Clock className="w-4 h-4 text-white/40" />;
       default: return <CheckCircle className="w-4 h-4 text-green-500" />;
     }
@@ -84,14 +84,18 @@ export default function Prozesse() {
         {runningProcesses.length > 0 && (
           <ModuleCard 
             title="Aktuell laufend" 
-            icon={<Play className="w-4 h-4 text-[oklch(0.7_0.18_50)]" />}
+            icon={<Play className="w-4 h-4 text-[color:var(--color-primary)]" />}
             isEditable={isEditMode}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {runningProcesses.map((entry, i) => (
                 <div 
                   key={i}
-                  className="flex items-center gap-4 p-4 rounded-xl bg-[oklch(0.55_0.15_45/15%)] border border-[oklch(0.55_0.15_45/30%)]"
+                  className="flex items-center gap-4 p-4 rounded-xl border"
+                  style={{
+                    background: "color-mix(in oklch, var(--color-card) 60%, transparent)",
+                    borderColor: "color-mix(in oklch, var(--color-border) 70%, transparent)",
+                  }}
                 >
                   <div 
                     className="w-10 h-10 rounded-full flex items-center justify-center"
@@ -122,7 +126,12 @@ export default function Prozesse() {
             {processes.map((process) => (
               <div 
                 key={process.id}
-                className="p-4 rounded-xl bg-[oklch(0.2_0.03_50/40%)] hover:bg-[oklch(0.25_0.04_50/50%)] transition-all"
+                className="p-4 rounded-xl transition-all"
+                style={{
+                  background: "color-mix(in oklch, var(--color-card) 50%, transparent)",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = "color-mix(in oklch, var(--color-card) 60%, transparent)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "color-mix(in oklch, var(--color-card) 50%, transparent)")}
               >
                 <div className="flex items-start gap-4">
                   {/* Status Icon */}
@@ -176,7 +185,7 @@ export default function Prozesse() {
                   
                   {/* Value */}
                   <div className="text-right shrink-0">
-                    <div className="text-lg font-semibold text-[oklch(0.7_0.18_50)]">
+                    <div className="text-lg font-semibold text-[color:var(--color-primary)]">
                       {Math.round((process.totalValue || 0) / 100)}€
                     </div>
                     <div className="text-xs text-white/40">

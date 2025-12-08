@@ -41,18 +41,20 @@ function MiniCalendar({ selectedDate, onDateChange }: { selectedDate: Date; onDa
     <div className="space-y-4">
       {/* Month Navigation */}
       <div className="flex items-center justify-between">
-        <button 
+        <button
           onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
-          className="p-1.5 rounded-lg hover:bg-[oklch(0.5_0.12_45/20%)] text-white/50 hover:text-white/80 transition-colors"
+          className="p-1.5 rounded-lg text-white/50 hover:text-white/80 transition-colors"
+          style={{ background: "color-mix(in oklch, var(--color-border) 20%, transparent)" }}
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
         <span className="text-sm font-medium text-white/90 tracking-wide">
           {viewDate.getDate().toString().padStart(2, '0')}. {monthNames[viewDate.getMonth()].toUpperCase()} {viewDate.getFullYear()}
         </span>
-        <button 
+        <button
           onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
-          className="p-1.5 rounded-lg hover:bg-[oklch(0.5_0.12_45/20%)] text-white/50 hover:text-white/80 transition-colors"
+          className="p-1.5 rounded-lg text-white/50 hover:text-white/80 transition-colors"
+          style={{ background: "color-mix(in oklch, var(--color-border) 20%, transparent)" }}
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -87,9 +89,9 @@ function MiniCalendar({ selectedDate, onDateChange }: { selectedDate: Date; onDa
               }}
               className={`
                 text-sm py-2 rounded-lg transition-all duration-200
-                ${d.isCurrentMonth ? 'text-white/70 hover:bg-[oklch(0.5_0.12_45/20%)]' : 'text-white/20'}
-                ${isSelected ? 'bg-[oklch(0.55_0.15_45)] text-white font-medium' : ''}
-                ${isToday && !isSelected ? 'ring-1 ring-[oklch(0.55_0.15_45)]' : ''}
+                ${d.isCurrentMonth ? 'text-white/70 hover:bg-[color:color-mix(in_oklch,_var(--color-border)_20%,_transparent)]' : 'text-white/20'}
+                ${isSelected ? 'bg-[color:var(--color-primary)] text-white font-medium' : ''}
+                ${isToday && !isSelected ? 'ring-1 ring-[var(--color-primary)]' : ''}
               `}
             >
               {d.day}
@@ -122,7 +124,8 @@ function ScheduleTimeline({ entries }: { entries: Array<{ title: string; startHo
         {hours.map(hour => (
           <div 
             key={hour} 
-            className="h-7 border-t border-[oklch(0.5_0.12_45/10%)]"
+            className="h-7 border-t"
+            style={{ borderColor: "color-mix(in oklch, var(--color-border) 15%, transparent)" }}
           />
         ))}
         
@@ -138,7 +141,7 @@ function ScheduleTimeline({ entries }: { entries: Array<{ title: string; startHo
               style={{
                 top: `${top}px`,
                 height: `${height}px`,
-                backgroundColor: entry.color || 'oklch(0.55 0.15 45)',
+                backgroundColor: entry.color || 'var(--color-primary)',
               }}
             >
               <span className="font-medium">{entry.title}</span>
@@ -197,7 +200,7 @@ export default function AgentDetail() {
           <p className="text-white/50">Agent nicht gefunden</p>
           <button 
             onClick={() => setLocation("/")}
-            className="mt-4 text-[oklch(0.7_0.18_50)] hover:underline"
+            className="mt-4 text-[color:var(--color-primary)] hover:underline"
           >
             Zurück zur Übersicht
           </button>
@@ -214,7 +217,8 @@ export default function AgentDetail() {
           <div className="flex items-center gap-5">
             <button 
               onClick={() => setLocation("/")}
-              className="p-2.5 rounded-xl hover:bg-[oklch(0.5_0.12_45/20%)] text-white/50 hover:text-white/80 transition-colors"
+              className="p-2.5 rounded-xl text-white/50 hover:text-white/80 transition-colors"
+              style={{ background: "color-mix(in oklch, var(--color-border) 20%, transparent)" }}
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -251,8 +255,8 @@ export default function AgentDetail() {
                 <AgentSilhouette 
                   utilization={agentStats.utilization} 
                   height={360}
-                  fillColor="oklch(0.65 0.18 45)"
-                  bgColor="oklch(0.30 0.06 45 / 40%)"
+                  fillColor="var(--color-primary)"
+                  bgColor="color-mix(in oklch, var(--color-primary) 20%, transparent)"
                 />
               </div>
               
@@ -264,8 +268,8 @@ export default function AgentDetail() {
                 </div>
                 
                 <div className="space-y-1">
-                  <p className="text-[oklch(0.7_0.18_50)] font-medium">1 Agent /</p>
-                  <p className="text-[oklch(0.7_0.18_50)] font-medium">{agent.hoursPerDay} Stunden pro Tag</p>
+          <p className="font-medium" style={{ color: "var(--color-primary)" }}>1 Agent /</p>
+          <p className="font-medium" style={{ color: "var(--color-primary)" }}>{agent.hoursPerDay} Stunden pro Tag</p>
                 </div>
                 
                 <div className="space-y-3 text-sm pt-2">
@@ -278,17 +282,29 @@ export default function AgentDetail() {
                 </div>
                 
                 {/* Workspaces */}
-                <div className="pt-5 border-t border-[oklch(0.5_0.12_45/15%)]">
+                <div
+                  className="pt-5 border-t"
+                  style={{ borderColor: "color-mix(in oklch, var(--color-border) 40%, transparent)" }}
+                >
                   <p className="text-sm text-white/50 font-medium mb-3">Workspaces:</p>
                   <div className="space-y-2">
                     {workspaces.length === 0 ? (
                       <>
-                        <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[oklch(0.25_0.04_50/50%)] border border-[oklch(0.5_0.12_45/25%)]">
+                        <div
+                          className="flex items-center gap-3 px-4 py-2.5 rounded-xl border"
+                          style={{
+                            background: "color-mix(in oklch, var(--color-card) 60%, transparent)",
+                            borderColor: "color-mix(in oklch, var(--color-border) 60%, transparent)",
+                          }}
+                        >
                           <div className="w-2 h-2 rounded-full bg-green-500" />
                           <Monitor className="w-4 h-4 text-white/40" />
                           <span className="text-sm text-white/80">Apotheken PC</span>
                         </div>
-                        <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[oklch(0.2_0.03_50/40%)]">
+                        <div
+                          className="flex items-center gap-3 px-4 py-2.5 rounded-xl"
+                          style={{ background: "color-mix(in oklch, var(--color-card) 50%, transparent)" }}
+                        >
                           <div className="w-2 h-2 rounded-full bg-gray-500" />
                           <Monitor className="w-4 h-4 text-white/40" />
                           <span className="text-sm text-white/70">Marketing VM</span>
@@ -298,11 +314,15 @@ export default function AgentDetail() {
                       workspaces.map(ws => (
                         <div 
                           key={ws.id}
-                          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl ${
-                            ws.status === 'online' 
-                              ? 'bg-[oklch(0.25_0.04_50/50%)] border border-[oklch(0.5_0.12_45/25%)]' 
-                              : 'bg-[oklch(0.2_0.03_50/40%)]'
-                          }`}
+                          className="flex items-center gap-3 px-4 py-2.5 rounded-xl border"
+                          style={
+                            ws.status === 'online'
+                              ? {
+                                  background: "color-mix(in oklch, var(--color-card) 60%, transparent)",
+                                  borderColor: "color-mix(in oklch, var(--color-border) 60%, transparent)",
+                                }
+                              : { background: "color-mix(in oklch, var(--color-card) 50%, transparent)", borderColor: "color-mix(in oklch, var(--color-border) 50%, transparent)" }
+                          }
                         >
                           <div className={`w-2 h-2 rounded-full ${ws.status === 'online' ? 'bg-green-500' : 'bg-gray-500'}`} />
                           <Monitor className="w-4 h-4 text-white/40" />
@@ -328,15 +348,15 @@ export default function AgentDetail() {
                 endHour: s.endHour,
                 color: s.color || undefined,
               })) : [
-                { title: "Processplan X", startHour: 1, endHour: 2, color: "#c2410c" },
-                { title: "Processplan X", startHour: 3, endHour: 4, color: "#c2410c" },
-                { title: "Processplan X", startHour: 6, endHour: 8, color: "#c2410c" },
-                { title: "Processplan X", startHour: 8, endHour: 9, color: "#a16207" },
-                { title: "Processplan X", startHour: 10, endHour: 11, color: "#a16207" },
-                { title: "Test Process X", startHour: 12, endHour: 13, color: "#78716c" },
-                { title: "Process Building", startHour: 14, endHour: 19, color: "#78716c" },
-                { title: "Processplan X", startHour: 20, endHour: 21, color: "#c2410c" },
-                { title: "Processplan X", startHour: 22, endHour: 23, color: "#c2410c" },
+                { title: "Processplan X", startHour: 1, endHour: 2, color: "var(--color-primary)" },
+                { title: "Processplan X", startHour: 3, endHour: 4, color: "var(--color-primary)" },
+                { title: "Processplan X", startHour: 6, endHour: 8, color: "var(--color-primary)" },
+                { title: "Processplan X", startHour: 8, endHour: 9, color: "var(--color-accent)" },
+                { title: "Processplan X", startHour: 10, endHour: 11, color: "var(--color-accent)" },
+                { title: "Test Process X", startHour: 12, endHour: 13, color: "var(--color-muted)" },
+                { title: "Process Building", startHour: 14, endHour: 19, color: "var(--color-muted)" },
+                { title: "Processplan X", startHour: 20, endHour: 21, color: "var(--color-primary)" },
+                { title: "Processplan X", startHour: 22, endHour: 23, color: "var(--color-primary)" },
               ]}
             />
           </ModuleCard>
@@ -349,7 +369,11 @@ export default function AgentDetail() {
               
               <button 
                 onClick={() => setLocation("/wochenplan")}
-                className="mt-5 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[oklch(0.5_0.12_45/30%)] text-white/70 hover:bg-[oklch(0.5_0.12_45/15%)] transition-all duration-200"
+                className="mt-5 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-white/70 transition-all duration-200"
+                style={{
+                  borderColor: "color-mix(in oklch, var(--color-border) 60%, transparent)",
+                  background: "color-mix(in oklch, var(--color-card) 40%, transparent)",
+                }}
               >
                 <span className="font-medium">Weekly View</span>
                 <ChevronRight className="w-4 h-4" />
@@ -360,7 +384,7 @@ export default function AgentDetail() {
             <ModuleCard isEditable={isEditMode}>
               <div className="text-center py-10">
                 <h3 className="text-lg font-semibold text-white mb-3">TOP Skills of the Month</h3>
-                <p className="text-[oklch(0.7_0.18_50)] text-sm">coming soon</p>
+                <p className="text-sm" style={{ color: "var(--color-primary)" }}>coming soon</p>
               </div>
             </ModuleCard>
           </div>

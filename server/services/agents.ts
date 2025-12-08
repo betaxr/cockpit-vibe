@@ -11,6 +11,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { agents, teams } from "../../drizzle/schema";
 import { seedAgents, seedTeams } from "../seedData";
+import { THEME_COLORS } from "../../shared/themeColors";
 
 export type AgentWithTeam = {
   id: number;
@@ -68,7 +69,7 @@ export async function getAllAgents(): Promise<AgentWithTeam[]> {
         team: team ? {
           id: team.id,
           name: team.name,
-          color: "#f97316", // Default color
+      color: THEME_COLORS.primary, // Default color
         } : null,
       };
     });
