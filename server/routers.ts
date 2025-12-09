@@ -62,35 +62,49 @@ export const appRouter = router({
       if (!testLoginEnabled) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Test login disabled' });
       }
-      if (input.username === 'admin' && input.password === 'admin') {
-        const testOpenId = 'test-admin-user';
-        const tenantId = ctx.tenantId ?? (process.env.TENANT_ID ?? "default");
-        await upsertUser({
-          openId: testOpenId,
-          tenantId,
-          name: 'Test Admin',
-          email: 'admin@test.local',
-          loginMethod: 'test',
-          role: 'admin',
-          lastSignedIn: new Date(),
-        });
-        const user = await getUserByOpenId(testOpenId, tenantId);
-        if (!user) return { success: false, message: 'User creation failed' };
-        const token = await standaloneAuth.createSessionToken(user.openId, {
-          name: user.name || 'Test Admin',
-          expiresInMs: ONE_YEAR_MS,
-        });
-        const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.cookie(COOKIE_NAME, token, cookieOptions);
-        await logAudit({
-          action: "auth.testLogin",
-          actor: { id: testOpenId, role: 'admin' },
-          tenantId,
-          meta: { username: input.username },
-        });
-        return { success: true, message: 'Login successful' };
+      const TEST_USERS = {
+        admin: { password: 'admin', role: 'admin', name: 'Test Admin', email: 'admin@test.local' },
+        editor: { password: 'editor', role: 'editor', name: 'Test Editor', email: 'editor@test.local' },
+        viewer: { password: 'viewer', role: 'viewer', name: 'Test Viewer', email: 'viewer@test.local' },
+      } as const;
+
+      const testUser = TEST_USERS[input.username as keyof typeof TEST_USERS];
+      const isValid = testUser?.password === input.password;
+      if (!isValid) {
+        return { success: false, message: 'Invalid credentials' };
       }
-      return { success: false, message: 'Invalid credentials' };
+
+      const tenantId = ctx.tenantId ?? (process.env.TENANT_ID ?? "default");
+      const testOpenId = `test-${testUser.role}-user`;
+
+      await upsertUser({
+        openId: testOpenId,
+        tenantId,
+        name: testUser.name,
+        email: testUser.email,
+        loginMethod: 'test',
+        role: testUser.role,
+        lastSignedIn: new Date(),
+      });
+
+      const user = await getUserByOpenId(testOpenId, tenantId);
+      if (!user) return { success: false, message: 'User creation failed' };
+
+      const token = await standaloneAuth.createSessionToken(user.openId, {
+        name: user.name || testUser.name,
+        expiresInMs: ONE_YEAR_MS,
+      });
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(COOKIE_NAME, token, cookieOptions);
+
+      await logAudit({
+        action: "auth.testLogin",
+        actor: { id: testOpenId, role: testUser.role },
+        tenantId,
+        meta: { username: input.username },
+      });
+
+      return { success: true, message: 'Login successful' };
     }),
   }),
 

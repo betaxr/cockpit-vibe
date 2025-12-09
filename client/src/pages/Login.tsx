@@ -155,11 +155,18 @@ export default function Login() {
               borderColor: "color-mix(in oklch, var(--color-border) 60%, transparent)",
             }}
           >
-            <p className="text-xs text-white/50 text-center">
-              <span className="font-medium text-white/70">Test-Zugangsdaten:</span><br />
-              Benutzer: <code className="text-[color:var(--color-primary)]">admin</code> / 
-              Passwort: <code className="text-[color:var(--color-primary)]">admin</code>
-            </p>
+            <div className="text-xs text-white/50 text-center space-y-1">
+              <p className="font-medium text-white/70">Test-Zugangsdaten</p>
+              <p>
+                Admin: <code className="text-[color:var(--color-primary)]">admin / admin</code>
+              </p>
+              <p>
+                Editor: <code className="text-[color:var(--color-primary)]">editor / editor</code>
+              </p>
+              <p>
+                Viewer: <code className="text-[color:var(--color-primary)]">viewer / viewer</code>
+              </p>
+            </div>
           </div>
         </div>
       </div>
