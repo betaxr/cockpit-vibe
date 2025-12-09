@@ -27,7 +27,7 @@ const requireUser = t.middleware(async opts => {
 
 const requireTenant = t.middleware(async opts => {
   const { ctx, next } = opts;
-  const resolvedTenant = ctx.tenantId || (ctx.user as any)?.tenantId || process.env.TENANT_ID || "default";
+  const resolvedTenant = ctx.tenantId || (ctx.user as any)?.tenantId || process.env.TENANT_ID || "demo";
   return next({
     ctx: {
       ...ctx,
