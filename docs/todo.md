@@ -42,3 +42,15 @@
 - [ ] Sidebar-UI: Glass/blur (10px) + transparente Tokens, klare Active/Hover/Fokus States.
 - [ ] Tooltips/i18n: Short helps für Nav (Agenten/Wochenplan/Cortex/Prozesse/Arbeitsplätze) + KPIs (Prozesse/Wertschöpfung/Zeitersparnis/Auslastung) DE/EN.
 - [ ] Layout-Persistenz: Sticky-Grid an allen Seiten anbinden; vorerst localStorage, optional API `/api/layouts {tenantId,userId,page,positions}`.
+
+## TODOs — Business Value, Narrative, Relations
+- [ ] Processes (Stammdaten) um Business-Felder ergänzen: `businessName`, `businessDescription`, `domain/category`, `businessOwnerId`, `criticality (low/medium/high/mission_critical)`, `environment (test/stage/prod)`, `narrativeSummary`.
+- [ ] Processes um Value-Modell: `valueModelType (time_saving/revenue_gain/cost_avoidance/risk_reduction)`, `baselineManualTimePerItemMinutes`, `baselineCostPerHour`, `baselineVolumePerPeriod`, `plannedAutomationRatePercent`, `plannedQualityImprovementPercent?`, `estimatedValuePerPeriodEuro`, `valueAssumptionsNote`.
+- [ ] Runs (Realität) erweitern: `itemsProcessed`, `humanTimeUsedMinutes`, `manualInterventionsCount`, `errorsCount/exceptionsCount`, `actualTimeSavedMinutes`, `actualValueEuro`, `valueConfidence (measured/estimated/unknown)`.
+- [ ] SLA/Risk-Felder: Processes `slaTargetSeconds`, `maxAllowedErrorRatePercent`, `riskCategory (compliance/data_privacy/financial/operational)`; Runs `breachedSla`, `slaDelaySeconds`, `retryCount`, optional `incidentId`.
+- [ ] Skills: Mehrfach pro Prozess (`skillIds[]`), Skill-Stammdaten `id/tenantId/name/description/tags/params?/version`; Übersicht “used in processes/runs”.
+- [ ] Workplaces: Aus Mockups übernehmen und schärfen: `type (VM/PC/...)`, `status`, `location/department`, `allowedProcessIds|traits`, `currentRunId`, `tags`. Relation zu Prozessen sichtbar machen (welcher Prozess läuft dort).
+- [ ] Relations/Hierarchie anlegen: Map → Collective → Team → Agent → Process Plan → Run; Felder für Aggregation (teamId/collectiveId/mapId auf Runs/Processes/Workplaces/Agents).
+- [ ] QueueItems (optional) für Backlog/Wert: `queueItemId`, `processId`, `businessReference`, `estimatedItemValueEuro`, `priority`, `dueDate`.
+- [ ] KPI/ROI-Logik im Backend: geplante Werte (aus Process-Value-Modell) vs. reale Aggregationen (aus Runs) je Zeitraum (Tag/Woche) liefern; Abweichungen berechnen.
+- [ ] Frontend: Narrative-Module mit `narrativeSummary`/Business-Feldern befüllen; KPI-Module um “planned vs. actual” erweitern; Tooltip/Hinweise zur Confidence (valueConfidence).
