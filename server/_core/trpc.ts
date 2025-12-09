@@ -27,17 +27,12 @@ const requireUser = t.middleware(async opts => {
 
 const requireTenant = t.middleware(async opts => {
   const { ctx, next } = opts;
-  const tenantId = ctx.tenantId || process.env.TENANT_ID || "default";
-  // Enforce tenant match if user carries tenantId
-  const userTenant = (ctx.user as any)?.tenantId;
-  if (userTenant && userTenant !== tenantId) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Tenant mismatch" });
-  }
+  const resolvedTenant = ctx.tenantId || (ctx.user as any)?.tenantId || process.env.TENANT_ID || "default";
   return next({
     ctx: {
       ...ctx,
-      tenantId,
-      user: ctx.user ? ({ ...ctx.user, tenantId } as any) : null,
+      tenantId: resolvedTenant,
+      user: ctx.user ? ({ ...ctx.user, tenantId: resolvedTenant } as any) : null,
     },
   });
 });
