@@ -97,9 +97,9 @@ export const appRouter = router({
   // Global statistics using seed data
   stats: router({
     global: protectedProcedure
-      .input(z.object({ from: z.string().optional(), to: z.string().optional(), range: z.enum(["day", "week", "month"]).optional() }))
+      .input(z.object({ from: z.string().optional(), to: z.string().optional(), range: z.enum(["day", "week", "month"]).optional() }).optional())
       .query(async ({ ctx, input }) => {
-        const { from, to, range } = input;
+        const { from, to, range } = input || {};
         const { fromDate, toDate } = resolveRange(from, to, range, "day");
         return fetchGlobalStats(ctx.tenantId, fromDate, toDate);
       }),
