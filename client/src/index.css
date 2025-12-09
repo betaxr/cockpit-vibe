@@ -186,6 +186,82 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  /* Reusable glow surfaces (matches KPI cards) */
+  .surface-glow {
+    position: relative;
+    overflow: hidden;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklch, var(--color-card) 70%, transparent),
+      color-mix(in oklch, var(--color-card) 55%, transparent)
+    );
+    border: 1px solid color-mix(in oklch, var(--color-border) 70%, transparent);
+    box-shadow: 0 12px 40px color-mix(in oklch, var(--color-primary) 14%, transparent);
+  }
+
+  .surface-glow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklch, var(--color-primary) 10%, transparent),
+      transparent
+    );
+  }
+
+  /* Primary-colored glow for buttons / CTAs */
+  .glow-primary {
+    position: relative;
+    overflow: hidden;
+    border-radius: inherit;
+    box-shadow: 0 14px 38px color-mix(in oklch, var(--color-primary) 22%, transparent);
+  }
+
+  .glow-primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklch, var(--color-primary) 12%, transparent),
+      transparent
+    );
+    opacity: 0.9;
+  }
+
+  /* Subtle glow for form fields */
+  .glow-input {
+    position: relative;
+    overflow: hidden;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklch, var(--color-card) 85%, transparent),
+      color-mix(in oklch, var(--color-card) 70%, transparent)
+    );
+    border: 1px solid color-mix(in oklch, var(--color-border) 80%, transparent);
+    box-shadow: 0 10px 30px color-mix(in oklch, var(--color-primary) 10%, transparent);
+  }
+
+  .glow-input::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklch, var(--color-primary) 8%, transparent),
+      transparent
+    );
+  }
   
   html {
     /* Apple-style smooth scrolling */

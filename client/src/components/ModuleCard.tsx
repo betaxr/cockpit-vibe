@@ -21,8 +21,7 @@ export default function ModuleCard({
   return (
     <div
       className={`
-        relative overflow-hidden group
-        bg-gradient-to-br from-[color:color-mix(in_oklch,_var(--color-card)_70%,_transparent)] to-[color:color-mix(in_oklch,_var(--color-card)_55%,_transparent)]
+        relative overflow-hidden group surface-glow
         backdrop-blur-xl
         border ${isEditable ? "border-[color:color-mix(in_oklch,_var(--color-primary)_50%,_var(--color-border)_50%)]" : "border-[color:color-mix(in_oklch,_var(--color-border)_70%,_transparent)]"}
         rounded-xl
@@ -30,10 +29,6 @@ export default function ModuleCard({
         ${isEditable ? "cursor-grab active:cursor-grabbing hover:shadow-[0_0_20px_color-mix(in_oklch,_var(--color-primary)_15%,_transparent)]" : ""}
         ${className}
       `}
-      style={{
-        borderColor: "color-mix(in oklch, var(--color-border) 80%, transparent)",
-        background: "color-mix(in oklch, var(--color-card) 90%, transparent)",
-      }}
     >
       {/* Subtle inner glow */}
       <div className="absolute inset-0 bg-gradient-to-br from-[color:color-mix(in_oklch,_var(--color-accent)_5%,_transparent)] to-transparent pointer-events-none" />

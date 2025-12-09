@@ -151,11 +151,7 @@ export default function Wochenplan() {
             placeholder="Suche in Wochenplan (Titel oder Agent)..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder:text-white/40 focus:outline-none"
-            style={{
-              background: "color-mix(in oklch, var(--color-card) 85%, transparent)",
-              border: "1px solid color-mix(in oklch, var(--color-border) 80%, transparent)",
-            }}
+            className="w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder:text-white/40 focus:outline-none surface-glow"
           />
         </div>
 
