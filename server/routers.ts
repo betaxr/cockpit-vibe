@@ -31,6 +31,7 @@ import {
 import { logAudit } from "./services/audit";
 import { getLayout, upsertLayout } from "./services/layouts";
 import { resolveRange } from "./services/timeRange";
+import { THEME_COLORS } from "../shared/themeColors";
 
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
@@ -200,41 +201,44 @@ export const appRouter = router({
 
   // Schedule for week view
   schedule: router({
-    byAgent: protectedProcedure.input(z.object({
-      agentId: z.string(),
-    })).query(async ({ input, ctx }) => {
-      const schedule = await fetchScheduleEntries(ctx.tenantId);
-      return schedule
-        .filter(entry => entry.agentId === input.agentId)
-        .map((entry, index) => ({
-          id: entry.id ?? index + 1,
-          title: entry.title,
-          startHour: entry.startHour,
-          endHour: entry.endHour,
-          color: entry.color,
-          processId: entry.processId ?? null,
-        }));
-    }),
     week: protectedProcedure.input(z.object({
-      agentId: z.string().optional(),
-      weekStart: z.string(),
+      scope: z.enum(["team", "workplace"]).default("team"),
+      id: z.string().optional(), // teamId or workplaceId when scoped
+      from: z.string().optional(),
+      to: z.string().optional(),
+      range: z.enum(["day", "week", "month"]).optional(),
     })).query(async ({ input, ctx }) => {
+      const { fromDate, toDate } = resolveRange(input.from, input.to, input.range, "week");
       const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+
       const schedule = await fetchScheduleEntries(ctx.tenantId);
       const agents = await fetchAgents(ctx.tenantId);
-      const entries = input.agentId !== undefined
-        ? schedule.filter(e => e.agentId === input.agentId)
-        : schedule;
-      
+      const filtered = schedule.filter(entry => {
+        const entryStart = new Date(fromDate);
+        entryStart.setHours(entry.startHour, 0, 0, 0);
+        const entryEnd = new Date(entryStart);
+        entryEnd.setHours(entry.endHour, 0, 0, 0);
+        const inWindow = entryStart <= toDate && entryEnd >= fromDate;
+        if (!inWindow) return false;
+        if (input.scope === "team" && input.id) {
+          const agent = agents.find(a => a.id === entry.agentId);
+          return agent?.teamId === input.id;
+        }
+        if (input.scope === "workplace" && input.id) {
+          return entry.processId === input.id || entry.agentId === input.id || entry.id === input.id;
+        }
+        return true;
+      });
+
       return days.map((day, dayIndex) => ({
         day,
         dayIndex,
-        entries: entries.map((entry, index) => ({
+        entries: filtered.map((entry, index) => ({
           id: `${dayIndex}-${entry.id ?? index}`,
           title: entry.title,
           startHour: entry.startHour,
           endHour: entry.endHour,
-          color: entry.color,
+          color: entry.color ?? THEME_COLORS.primary,
           agentId: entry.agentId ?? 0,
           agentName: agents.find(a => a.id === entry.agentId)?.name || 'Unknown',
         })),
