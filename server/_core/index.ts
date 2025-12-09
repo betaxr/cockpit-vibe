@@ -10,6 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import { requestLogger, errorLogger, healthCheck, setupGracefulShutdown, logger } from "./ops";
 import { validateEnv, checkProductionReadiness } from "./envValidation";
 import { apiRateLimit, authRateLimit, csrfProtection, securityHeaders } from "./security";
+import { seedMongoWithDefaults } from "../services/mongoSeed";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,6 +38,9 @@ async function startServer() {
   if (!readiness.ready) {
     logger.warn("Production readiness check failed", { missing: readiness.missing });
   }
+
+  // Ensure demo data exists when Mongo is empty
+  await seedMongoWithDefaults();
 
   const app = express();
   const server = createServer(app);
