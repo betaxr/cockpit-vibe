@@ -36,19 +36,20 @@ export default function Agents() {
               label="Prozesse"
               size="sm"
             />
-            {/* Bundled KPI: Wertschöpfung + Zeitersparnis */}
             <KPICard
               value={stats?.activeAgents || 0}
               label="Aktive Agenten"
               secondaryValue={agents.length}
               secondarySuffix="Gesamt"
               secondaryLabel="Agenten"
+              tooltip="Aktive = active/busy/idle/planned; Gesamt = alle Agenten"
             />
             <KPICard
               value={Math.round((stats?.utilizationAgents ?? 0) * 100)}
               suffix="%"
               label="Auslastung"
               size="sm"
+              tooltip="Auslastung = busyAgents / totalAgents"
             />
           </div>
         </header>
@@ -96,6 +97,9 @@ export default function Agents() {
                       <h3 className="text-base font-medium text-white">{agent.name}</h3>
                       <p className="text-xs text-white/40 mt-0.5">
                         {agent.agentCount || 1} {(agent.agentCount || 1) === 1 ? 'Agent' : 'Agenten'}
+                      </p>
+                      <p className="text-xs text-white/55 mt-1" title="Tageskapazität = Agenten * 24h">
+                        Tageskapazität: {(agent.agentCount || 1) * 24}h
                       </p>
                       
                       <div className="flex items-center gap-3 text-xs mt-2">

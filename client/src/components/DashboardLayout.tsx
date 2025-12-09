@@ -45,11 +45,11 @@ export function useEditMode() {
 }
 
 const menuItems = [
-  { icon: Bot, label: "Agenten", path: "/" },
-  { icon: Calendar, label: "Wochenplan", path: "/wochenplan" },
-  { icon: Brain, label: "Cortex", path: "/cortex" },
-  { icon: Workflow, label: "Prozesse", path: "/prozesse" },
-  { icon: Monitor, label: "Arbeitsplätze", path: "/arbeitsplaetze" },
+  { icon: Bot, label: "Agenten", path: "/", tooltip: "Agenten und Teams verwalten" },
+  { icon: Calendar, label: "Wochenplan", path: "/wochenplan", tooltip: "Geplante Prozesse im Wochenüberblick" },
+  { icon: Brain, label: "Cortex", path: "/cortex", tooltip: "Orchestrierung und Analyse" },
+  { icon: Workflow, label: "Prozesse", path: "/prozesse", tooltip: "Prozesslisten und Ausführung" },
+  { icon: Monitor, label: "Arbeitsplätze", path: "/arbeitsplaetze", tooltip: "Workplaces und Zuordnung" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -218,7 +218,8 @@ function DashboardLayoutContent({
                     <SidebarMenuButton
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
-                      tooltip={item.label}
+                      tooltip={item.tooltip ?? item.label}
+                      title={item.tooltip}
                       className={`h-10 transition-all font-normal`}
                     >
                       <item.icon
