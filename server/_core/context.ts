@@ -11,6 +11,7 @@ import type { CreateExpressContextOptions } from "@trpc/server/adapters/express"
 import type { User } from "../../drizzle/schema";
 import { ENV } from "./env";
 import * as db from "../db";
+import { TRPCError } from "@trpc/server";
 
 // Use standalone auth by default, fall back to Manus SDK if OAuth is configured
 const getAuthService = async () => {
@@ -34,7 +35,12 @@ export async function createContext(
   opts: CreateExpressContextOptions
 ): Promise<TrpcContext> {
   let user: User | null = null;
-  const tenantId = process.env.TENANT_ID ?? "default";
+  const headerTenant = (opts.req.headers["x-tenant-id"] || opts.req.headers["x-tenant"] || "") as string;
+  const tenantId = headerTenant || process.env.TENANT_ID;
+
+  if (!tenantId) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "tenantId required" });
+  }
 
   try {
     const authService = await getAuthService();

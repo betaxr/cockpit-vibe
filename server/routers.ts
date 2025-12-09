@@ -29,6 +29,7 @@ import {
   fetchGlobalStats,
 } from "./services/dataProvider";
 import { logAudit } from "./services/audit";
+import { getLayout, upsertLayout } from "./services/layouts";
 
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
@@ -93,19 +94,19 @@ export const appRouter = router({
 
   // Global statistics using seed data
   stats: router({
-    global: protectedProcedure.query(async () => {
-      return fetchGlobalStats();
+    global: protectedProcedure.query(async ({ ctx }) => {
+      return fetchGlobalStats(ctx.tenantId);
     }),
   }),
 
   // Teams from seed data
   teams: router({
-    list: protectedProcedure.query(async () => {
-      return fetchTeams();
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return fetchTeams(ctx.tenantId);
     }),
-    getById: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-      const teams = await fetchTeams();
-      const team = teams.find(t => t.id === input.id);
+    getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
+      const teams = await fetchTeams(ctx.tenantId);
+      const team = teams.find(t => t.id === input.id || t.externalId === input.id);
       if (!team) throw new TRPCError({ code: 'NOT_FOUND' });
       return team;
     }),
@@ -113,21 +114,21 @@ export const appRouter = router({
 
   // Agents from seed data
   agents: router({
-    list: protectedProcedure.query(async () => {
-      return fetchAgents();
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return fetchAgents(ctx.tenantId);
     }),
-    getById: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-      const agents = await fetchAgents();
-      const agent = agents.find(a => a.id === input.id);
+    getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
+      const agents = await fetchAgents(ctx.tenantId);
+      const agent = agents.find(a => a.id === input.id || a.externalId === input.id);
       if (!agent) throw new TRPCError({ code: 'NOT_FOUND' });
       return agent;
     }),
-    workspaces: protectedProcedure.input(z.object({ agentId: z.number() })).query(async ({ input }) => {
-      const workspaces = await fetchWorkspaces();
+    workspaces: protectedProcedure.input(z.object({ agentId: z.string() })).query(async ({ input, ctx }) => {
+      const workspaces = await fetchWorkspaces(ctx.tenantId);
       return workspaces.filter(ws => ws.agent?.id === input.agentId);
     }),
-    processes: protectedProcedure.input(z.object({ agentId: z.number() })).query(async ({ input }) => {
-      const processes = await fetchProcesses();
+    processes: protectedProcedure.input(z.object({ agentId: z.string() })).query(async ({ input, ctx }) => {
+      const processes = await fetchProcesses(ctx.tenantId);
       return processes
         .filter(p => p.agent?.id === input.agentId)
         .map(p => ({
@@ -146,10 +147,10 @@ export const appRouter = router({
         }));
     }),
     schedule: protectedProcedure.input(z.object({
-      agentId: z.number(),
+      agentId: z.string(),
       date: z.string(),
-    })).query(async ({ input }) => {
-      const schedule = await fetchScheduleEntries();
+    })).query(async ({ input, ctx }) => {
+      const schedule = await fetchScheduleEntries(ctx.tenantId);
       return schedule
         .filter(entry => entry.agentId === input.agentId)
         .map((entry, index) => ({
@@ -161,8 +162,8 @@ export const appRouter = router({
           processId: entry.processId ?? null,
         }));
     }),
-    currentProcess: protectedProcedure.input(z.object({ agentId: z.number() })).query(async ({ input }) => {
-      const schedule = await fetchScheduleEntries();
+    currentProcess: protectedProcedure.input(z.object({ agentId: z.string() })).query(async ({ input, ctx }) => {
+      const schedule = await fetchScheduleEntries(ctx.tenantId);
       const currentHour = new Date().getHours();
       const entry = schedule.find(e => e.agentId === input.agentId && e.startHour <= currentHour && e.endHour > currentHour);
       if (!entry) return null;
@@ -177,27 +178,27 @@ export const appRouter = router({
 
   // Workspaces from seed data
   workspaces: router({
-    list: roleProcedure(["admin", "editor"]).query(async () => {
-      return fetchWorkspaces();
+    list: roleProcedure(["admin", "editor"]).query(async ({ ctx }) => {
+      return fetchWorkspaces(ctx.tenantId);
     }),
   }),
 
   // Processes from seed data with statistics
   processes: router({
-    list: roleProcedure(["admin", "editor"]).query(async () => {
-      return fetchProcesses();
+    list: roleProcedure(["admin", "editor"]).query(async ({ ctx }) => {
+      return fetchProcesses(ctx.tenantId);
     }),
-    running: roleProcedure(["admin", "editor"]).query(async () => {
-      return fetchRunningProcesses();
+    running: roleProcedure(["admin", "editor"]).query(async ({ ctx }) => {
+      return fetchRunningProcesses(ctx.tenantId);
     }),
   }),
 
   // Schedule for week view
   schedule: router({
     byAgent: protectedProcedure.input(z.object({
-      agentId: z.number(),
-    })).query(async ({ input }) => {
-      const schedule = await fetchScheduleEntries();
+      agentId: z.string(),
+    })).query(async ({ input, ctx }) => {
+      const schedule = await fetchScheduleEntries(ctx.tenantId);
       return schedule
         .filter(entry => entry.agentId === input.agentId)
         .map((entry, index) => ({
@@ -210,12 +211,12 @@ export const appRouter = router({
         }));
     }),
     week: protectedProcedure.input(z.object({
-      agentId: z.number().optional(),
+      agentId: z.string().optional(),
       weekStart: z.string(),
-    })).query(async ({ input }) => {
+    })).query(async ({ input, ctx }) => {
       const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
-      const schedule = await fetchScheduleEntries();
-      const agents = await fetchAgents();
+      const schedule = await fetchScheduleEntries(ctx.tenantId);
+      const agents = await fetchAgents(ctx.tenantId);
       const entries = input.agentId !== undefined
         ? schedule.filter(e => e.agentId === input.agentId)
         : schedule;
@@ -265,6 +266,24 @@ export const appRouter = router({
           createdAt: new Date().toISOString(),
         },
       ];
+    }),
+  }),
+
+  layouts: router({
+    get: protectedProcedure.input(z.object({ page: z.string() })).query(async ({ ctx, input }) => {
+      const userId = ctx.user?.openId;
+      if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const layout = await getLayout(ctx.tenantId, userId, input.page);
+      if (!layout) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      return layout;
+    }),
+    put: protectedProcedure.input(z.object({ page: z.string(), positions: z.any() })).mutation(async ({ ctx, input }) => {
+      const userId = ctx.user?.openId;
+      if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+      await upsertLayout(ctx.tenantId, userId, input.page, input.positions);
+      return { success: true } as const;
     }),
   }),
 });

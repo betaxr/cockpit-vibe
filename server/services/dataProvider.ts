@@ -1,46 +1,40 @@
-import { Collection, WithId } from "mongodb";
-import { seedAgents, seedTeams, seedWorkspaces, seedProcesses, seedScheduleEntries, getProcessReliability, getProcessTotalValue, getAgentCurrentProcess, getGlobalStats as getSeedGlobalStats } from "../seedData";
+import { Collection } from "mongodb";
 import { getMongoDb } from "../_core/mongo";
-import { ENV } from "../_core/env";
 import { THEME_COLORS } from "../../shared/themeColors";
 import { syncAgents, syncProcesses, syncSchedules, syncTeams, syncWorkspaces } from "./collectorSync";
 
-const defaultTenant = process.env.TENANT_ID ?? "default";
-
 type AgentDoc = {
-  tenantId?: string;
-  id?: number;
-  agentId?: string;
+  tenantId: string;
+  externalId: string;
   name: string;
-  teamId?: number | string | null;
+  teamId?: string | number | null;
   hoursPerDay?: number;
-  status?: "active" | "idle" | "offline" | "busy";
+  status?: "active" | "idle" | "offline" | "busy" | "planned";
   avatarColor?: string | null;
   skills?: string | null;
 };
 
 type TeamDoc = {
-  tenantId?: string;
-  id?: number;
+  tenantId: string;
+  externalId: string;
   name: string;
   color?: string;
 };
 
 type WorkspaceDoc = {
-  tenantId?: string;
-  id?: number;
+  tenantId: string;
+  externalId: string;
   name: string;
   workspaceId: string;
   type: string;
-  status: string;
+  status: "available" | "busy" | "idle" | "offline" | "maintenance";
   location?: string;
-  agentId?: number;
-  agentIndex?: number;
+  agentId?: string | number;
 };
 
 type ProcessDoc = {
-  tenantId?: string;
-  id?: number;
+  tenantId: string;
+  externalId: string;
   name: string;
   processId: string;
   description?: string;
@@ -50,21 +44,21 @@ type ProcessDoc = {
   scheduleCount?: number;
   successCount?: number;
   failCount?: number;
-  agentId?: number;
-  agentIndex?: number;
+  agentId?: string | number;
+  lifecycle?: "planned" | "scheduled" | "running" | "completed" | "failed" | "canceled";
+  isTest?: boolean;
 };
 
 type ScheduleDoc = {
-  tenantId?: string;
+  tenantId: string;
+  externalId?: string;
   id?: number | string;
   title: string;
   startHour: number;
   endHour: number;
   color?: string;
-  agentId?: number;
-  agentIndex?: number;
-  processId?: number;
-  processIndex?: number;
+  agentId?: string | number;
+  processId?: string | number;
 };
 
 async function getCollection<T>(name: string): Promise<Collection<T> | null> {
@@ -76,55 +70,36 @@ async function getCollection<T>(name: string): Promise<Collection<T> | null> {
 async function ensureSynced<T>(name: string, syncFn: (col: Collection<T>) => Promise<void>) {
   const col = await getCollection<T>(name);
   if (!col) return;
-  const hasDocs = await col.find({ tenantId: defaultTenant }).limit(1).toArray();
-  if (!hasDocs.length) {
-    await syncFn(col);
-  }
+  await syncFn(col);
 }
 
-export async function fetchTeams() {
+export async function fetchTeams(tenantId: string) {
   const col = await getCollection<TeamDoc>("teams");
-  if (!col) {
-    return seedTeams.map((team, index) => ({ id: index + 1, ...team }));
-  }
+  if (!col) throw new Error("MongoDB not configured");
   await ensureSynced("teams", syncTeams);
-  const docs = await col.find({ tenantId: defaultTenant }).toArray();
-  if (!docs.length) {
-    return seedTeams.map((team, index) => ({ id: index + 1, ...team }));
-  }
-  return docs.map((t, idx) => ({
-    id: t.id ?? idx + 1,
+  const docs = await col.find({ tenantId }).toArray();
+  return docs.map((t) => ({
+    id: t.externalId,
+    externalId: t.externalId,
     name: t.name,
     color: t.color ?? THEME_COLORS.primary,
   }));
 }
 
-export async function fetchAgents() {
+export async function fetchAgents(tenantId: string) {
   const col = await getCollection<AgentDoc>("agents");
-  const teams = await fetchTeams();
-  if (!col) {
-    return seedAgents.map((agent, index) => ({
-      id: index + 1,
-      ...agent,
-      team: teams.find(t => t.id === agent.teamIndex + 1) ?? null,
-    }));
-  }
+  if (!col) throw new Error("MongoDB not configured");
   await ensureSynced("agents", syncAgents);
-  const docs = await col.find({ tenantId: defaultTenant }).toArray();
-  if (!docs.length) {
-    return seedAgents.map((agent, index) => ({
-      id: index + 1,
-      ...agent,
-      team: teams.find(t => t.id === agent.teamIndex + 1) ?? null,
-    }));
-  }
-  return docs.map((a, idx) => {
-    const team = teams.find(t => `${t.id}` === `${a.teamId}`);
+  const docs = await col.find({ tenantId }).toArray();
+  const teams = await fetchTeams(tenantId);
+  return docs.map((a) => {
+    const team = teams.find(t => `${t.externalId}` === `${a.teamId}`);
     return {
-      id: a.id ?? idx + 1,
+      id: a.externalId,
+      externalId: a.externalId,
       name: a.name,
-      agentId: a.agentId ?? `agent-${a.id ?? idx + 1}`,
-      teamId: team?.id ?? null,
+      agentId: a.agentId ?? a.externalId,
+      teamId: team?.externalId ?? null,
       hoursPerDay: a.hoursPerDay ?? 24,
       status: a.status ?? "active",
       avatarColor: a.avatarColor ?? THEME_COLORS.primary,
@@ -134,111 +109,42 @@ export async function fetchAgents() {
   });
 }
 
-export async function fetchWorkspaces() {
+export async function fetchWorkspaces(tenantId: string) {
   const col = await getCollection<WorkspaceDoc>("workspaces");
-  const agents = await fetchAgents();
-  if (!col) {
-    return seedWorkspaces.map((ws, index) => ({
-      id: index + 1,
-      name: ws.name,
-      workspaceId: ws.workspaceId,
-      type: ws.type,
-      status: ws.status,
-      location: ws.location,
-      agent: agents[ws.agentIndex] ? {
-        id: ws.agentIndex + 1,
-        name: agents[ws.agentIndex].name,
-        status: agents[ws.agentIndex].status,
-      } : null,
-    }));
-  }
+  if (!col) throw new Error("MongoDB not configured");
   await ensureSynced("workspaces", syncWorkspaces);
-  const docs = await col.find({ tenantId: defaultTenant }).toArray();
-  if (!docs.length) {
-    return seedWorkspaces.map((ws, index) => ({
-      id: index + 1,
-      name: ws.name,
-      workspaceId: ws.workspaceId,
-      type: ws.type,
-      status: ws.status,
-      location: ws.location,
-      agent: agents[ws.agentIndex] ? {
-        id: ws.agentIndex + 1,
-        name: agents[ws.agentIndex].name,
-        status: agents[ws.agentIndex].status,
-      } : null,
-    }));
-  }
-  return docs.map((ws, idx) => {
-    const agent = agents.find(a => `${a.id}` === `${ws.agentId ?? ws.agentIndex ?? ""}`);
+  const docs = await col.find({ tenantId }).toArray();
+  const agents = await fetchAgents(tenantId);
+  return docs.map((ws) => {
+    const agent = ws.agentId ? agents.find(a => `${a.externalId}` === `${ws.agentId}`) : null;
     return {
-      id: ws.id ?? idx + 1,
+      id: ws.externalId,
+      externalId: ws.externalId,
       name: ws.name,
       workspaceId: ws.workspaceId,
       type: ws.type,
       status: ws.status,
       location: ws.location,
-      agent: agent ? { id: agent.id, name: agent.name, status: agent.status } : null,
+      agent: agent ? { id: agent.externalId, name: agent.name, status: agent.status } : null,
     };
   });
 }
 
-export async function fetchProcesses() {
+export async function fetchProcesses(tenantId: string) {
   const col = await getCollection<ProcessDoc>("processes");
-  const agents = await fetchAgents();
-  if (!col) {
-    return seedProcesses.map((p, index) => {
-      const agent = agents[p.agentIndex];
-      return {
-        id: index + 1,
-        name: p.name,
-        processId: p.processId,
-        description: p.description,
-        category: p.category,
-        estimatedMinutes: p.estimatedMinutes,
-        valuePerRun: p.valuePerRun,
-        scheduleCount: p.scheduleCount,
-        successCount: p.successCount,
-        failCount: p.failCount,
-        reliability: getProcessReliability(p),
-        totalValue: getProcessTotalValue(p),
-        totalTimeSaved: p.successCount * p.estimatedMinutes,
-        status: "idle" as const,
-        agent: agent ? { id: agent.id, name: agent.name, avatarColor: agent.avatarColor } : null,
-      };
-    });
-  }
+  if (!col) throw new Error("MongoDB not configured");
   await ensureSynced("processes", syncProcesses);
-  const docs = await col.find({ tenantId: defaultTenant }).toArray();
-  if (!docs.length) {
-    return seedProcesses.map((p, index) => {
-      const agent = agents[p.agentIndex];
-      return {
-        id: index + 1,
-        name: p.name,
-        processId: p.processId,
-        description: p.description,
-        category: p.category,
-        estimatedMinutes: p.estimatedMinutes,
-        valuePerRun: p.valuePerRun,
-        scheduleCount: p.scheduleCount,
-        successCount: p.successCount,
-        failCount: p.failCount,
-        reliability: getProcessReliability(p),
-        totalValue: getProcessTotalValue(p),
-        totalTimeSaved: p.successCount * p.estimatedMinutes,
-        status: "idle" as const,
-        agent: agent ? { id: agent.id, name: agent.name, avatarColor: agent.avatarColor } : null,
-      };
-    });
-  }
-  return docs.map((p, idx) => {
-    const agent = agents.find(a => `${a.id}` === `${p.agentId ?? p.agentIndex ?? ""}`);
+  const docs = await col.find({ tenantId }).toArray();
+  const agents = await fetchAgents(tenantId);
+  return docs.map((p) => {
+    const agent = p.agentId ? agents.find(a => `${a.externalId}` === `${p.agentId}`) : null;
     const est = p.estimatedMinutes ?? 30;
     const successCount = p.successCount ?? 0;
     const valPerRun = p.valuePerRun ?? 0;
+    const failCount = p.failCount ?? 0;
     return {
-      id: p.id ?? idx + 1,
+      id: p.externalId,
+      externalId: p.externalId,
       name: p.name,
       processId: p.processId,
       description: p.description ?? "",
@@ -247,40 +153,36 @@ export async function fetchProcesses() {
       valuePerRun: valPerRun,
       scheduleCount: p.scheduleCount ?? 0,
       successCount,
-      failCount: p.failCount ?? 0,
-      reliability: successCount + (p.failCount ?? 0) > 0 ? Math.round((successCount / (successCount + (p.failCount ?? 0))) * 100) : 100,
+      failCount,
+      reliability: successCount + failCount > 0 ? Math.round((successCount / (successCount + failCount)) * 100) : 100,
       totalValue: successCount * valPerRun,
       totalTimeSaved: successCount * est,
-      status: "idle" as const,
-      agent: agent ? { id: agent.id, name: agent.name, avatarColor: agent.avatarColor } : null,
+      lifecycle: p.lifecycle ?? "planned",
+      isTest: p.isTest ?? false,
+      agent: agent ? { id: agent.externalId, name: agent.name, avatarColor: agent.avatarColor } : null,
     };
   });
 }
 
-export async function fetchScheduleEntries() {
+export async function fetchScheduleEntries(tenantId: string) {
   const col = await getCollection<ScheduleDoc>("schedules");
-  if (!col) {
-    return seedScheduleEntries.map((entry, index) => ({ id: index + 1, ...entry }));
-  }
+  if (!col) throw new Error("MongoDB not configured");
   await ensureSynced("schedules", syncSchedules);
-  const docs = await col.find({ tenantId: defaultTenant }).toArray();
-  if (!docs.length) {
-    return seedScheduleEntries.map((entry, index) => ({ id: index + 1, ...entry }));
-  }
+  const docs = await col.find({ tenantId }).toArray();
   return docs.map((s, idx) => ({
-    id: s.id ?? idx + 1,
+    id: s.externalId ?? s.id ?? idx + 1,
     title: s.title,
     startHour: s.startHour,
     endHour: s.endHour,
     color: s.color ?? THEME_COLORS.primary,
-    agentId: s.agentId ?? (s.agentIndex !== undefined ? s.agentIndex + 1 : undefined),
-    processId: s.processId ?? (s.processIndex !== undefined ? s.processIndex + 1 : undefined),
+    agentId: s.agentId,
+    processId: s.processId,
   }));
 }
 
-export async function fetchRunningProcesses() {
-  const processes = await fetchProcesses();
-  const schedule = await fetchScheduleEntries();
+export async function fetchRunningProcesses(tenantId: string) {
+  const processes = await fetchProcesses(tenantId);
+  const schedule = await fetchScheduleEntries(tenantId);
   const currentHour = new Date().getHours();
   return schedule
     .filter(entry => entry.startHour <= currentHour && entry.endHour > currentHour)
@@ -301,20 +203,18 @@ export async function fetchRunningProcesses() {
     });
 }
 
-export async function fetchGlobalStats() {
-  const agents = await fetchAgents();
-  const processes = await fetchProcesses();
-  if (!agents.length || !processes.length) {
-    return getSeedGlobalStats();
-  }
-  const activeAgents = agents.filter(a => a.status === "active" || a.status === "busy").length;
-  const runningProcesses = (await fetchRunningProcesses()).length;
-  const completedProcesses = processes.filter(p => p.status === "completed").length;
+export async function fetchGlobalStats(tenantId: string) {
+  const agents = await fetchAgents(tenantId);
+  const processes = await fetchProcesses(tenantId);
+  const totalAgents = agents.filter(a => ["active", "busy", "idle", "planned"].includes(a.status ?? "active")).length;
+  const busyAgents = agents.filter(a => a.status === "busy").length;
+  const runningProcesses = (await fetchRunningProcesses(tenantId)).length;
   return {
-    activeAgents,
+    activeAgents: totalAgents,
     runningProcesses,
-    completedProcesses,
-    successRate: 98,
-    avgResponseTime: 1.2,
+    completedProcesses: processes.filter(p => p.lifecycle === "completed").length,
+    utilizationAgents: totalAgents > 0 ? busyAgents / totalAgents : 0,
+    successRate: 0,
+    avgResponseTime: 0,
   };
 }
