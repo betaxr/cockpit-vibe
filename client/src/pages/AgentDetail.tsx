@@ -1,6 +1,7 @@
 import DashboardLayout, { useEditMode } from "@/components/DashboardLayout";
 import KPICard, { MultiKPICard } from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
+import PageContainer from "@/components/PageContainer";
 import AgentSilhouette from "@/components/AgentSilhouette";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Monitor, ChevronLeft, ChevronRight, Zap, TrendingUp } from "lucide-react";
