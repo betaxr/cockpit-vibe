@@ -29,19 +29,19 @@
 - [x] Data protection & audits (S3 backup/restore helper for audit logs).
 
 ## New TODOs — DB-first UX statt Mockups
-- [ ] Datenmodell finalisieren (Mongo): tenantId als Pflicht; Collections für Teams, Agents, Workplaces, Processes, Schedules, Runs, Skills; Indizes `{tenantId, externalId}` unique + `{tenantId, agentId|workplaceId|processId}`.
-- [ ] Status-Definitionen verankern: Agents (active/busy/idle/offline/planned), Workplaces (available/busy/idle/offline/maintenance), Processes (planned/scheduled/running/completed/failed/canceled/test); Auslastung = busyAgents/totalAgents (Agents != offline).
-- [ ] APIs bereitstellen: Dashboard-Endpoint mit Zeitfenster (Tag/Woche) für KPIs + Summary (activeTeams/totalAgents/runningProcesses); Teams/Agents/Workplaces/Processes/Skills/Schedules/Runs Endpunkte liefern obige Felder.
-- [ ] Wochenplan: Endpoint `scope=team|workplace` mit Lanes und Blocks `{processId, name, startTime, endTime, status}`; Filtern nach Tenant + Zeitrange.
+- [x] Datenmodell finalisieren (Mongo): tenantId als Pflicht; Collections für Teams, Agents, Workplaces, Processes, Schedules, Runs, Skills; Indizes `{tenantId, externalId}` unique + `{tenantId, agentId|workplaceId|processId}`.
+- [x] Status-Definitionen verankern: Agents (active/busy/idle/offline/planned), Workplaces (available/busy/idle/offline/maintenance), Processes (planned/scheduled/running/completed/failed/canceled/test); Auslastung = busyAgents/totalAgents (Agents != offline).
+- [x] APIs bereitstellen: Dashboard-Endpoint mit Zeitfenster (Tag/Woche) für KPIs + Summary (activeTeams/totalAgents/runningProcesses); Teams/Agents/Workplaces/Processes/Skills/Schedules/Runs Endpunkte liefern obige Felder.
+- [x] Wochenplan: Endpoint `scope=team|workplace` mit Lanes und Blocks `{processId, name, startTime, endTime, status}`; Filtern nach Tenant + Zeitrange.
 - [ ] Frontend: Team-Karten auf API-Daten umstellen; Daily-Capacity als agents*24h + narrativer Tooltip; Summary-Zahlen aus Dashboard-Endpoint statt lokal summieren.
-- [ ] Frontend: Wochenplan UI umschalten Team/Workplace; keine 24h-Capacity im Plan; Prozesse/Workplaces/Skills anzeigen wie in Mockups.
+- [x] Frontend: Wochenplan UI umschalten Team/Workplace; keine 24h-Capacity im Plan; Prozesse/Workplaces/Skills anzeigen wie in Mockups.
 - [ ] Skills: Liste + “used in” Übersicht (Aggregat aus Processes/Runs); Prozesse erlauben mehrere Skills.
 - [ ] Workplaces: Felder aus Mockups übernehmen (type VM/PC, location/department, status, currentProcessId/allowedProcessIds oder Traits); UI anzeigen, welcher Prozess gerade läuft.
 - [ ] Runs: Ausführungs-Historie separat speichern (per Prozess/Workplace/Agent) für KPIs und Timeline; Prozesse bleiben Stammdaten.
-- [ ] Zeitkontext: Kalender-Modus (Tag/Woche) propagiert an KPIs/Plan/Runs Queries; UI zeigt aktiven Zeitraum.
+- [x] Zeitkontext: Kalender-Modus (Tag/Woche) propagiert an KPIs/Plan/Runs Queries; UI zeigt aktiven Zeitraum.
 - [ ] Sidebar-UI: Glass/blur (10px) + transparente Tokens, klare Active/Hover/Fokus States.
 - [ ] Tooltips/i18n: Short helps für Nav (Agenten/Wochenplan/Cortex/Prozesse/Arbeitsplätze) + KPIs (Prozesse/Wertschöpfung/Zeitersparnis/Auslastung) DE/EN.
-- [ ] Layout-Persistenz: Sticky-Grid an allen Seiten anbinden; vorerst localStorage, optional API `/api/layouts {tenantId,userId,page,positions}`.
+- [x] Layout-Persistenz: Sticky-Grid an allen Seiten anbinden; vorerst localStorage, optional API `/api/layouts {tenantId,userId,page,positions}`.
 
 ## TODOs — Business Value, Narrative, Relations
 - [ ] Processes (Stammdaten) um Business-Felder ergänzen: `businessName`, `businessDescription`, `domain/category`, `businessOwnerId`, `criticality (low/medium/high/mission_critical)`, `environment (test/stage/prod)`, `narrativeSummary`.
