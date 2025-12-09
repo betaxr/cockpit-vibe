@@ -1,6 +1,7 @@
 import { GripVertical, Maximize2, Minimize2 } from "lucide-react";
 import { useState, useRef, useEffect, ReactNode, createContext, useContext } from "react";
 import { useEditMode } from "./DashboardLayout";
+import { trpc } from "@/lib/trpc";
 
 // Grid configuration
 const GRID_SIZE = 20;
@@ -48,23 +49,30 @@ export function ModuleGridProvider({
   const globalEdit = useEditMode();
   const [localEditMode, setLocalEditMode] = useState(defaultEditMode);
   const [positions, setPositions] = useState<ModulePosition[]>([]);
+  const layoutsQuery = trpc.layouts.get.useQuery({ page: storageKey }, { retry: false });
+  const saveLayout = trpc.layouts.put.useMutation();
 
-  // Load positions from localStorage
+  // Load positions from API, fallback to localStorage
   useEffect(() => {
+    if (layoutsQuery.data?.positions) {
+      setPositions(layoutsQuery.data.positions as ModulePosition[]);
+      return;
+    }
     const saved = localStorage.getItem(`${storageKey}-positions`);
     if (saved) {
       try {
         setPositions(JSON.parse(saved));
       } catch {}
     }
-  }, [storageKey]);
+  }, [layoutsQuery.data, storageKey]);
 
   // Save positions to localStorage
   useEffect(() => {
     if (positions.length > 0) {
       localStorage.setItem(`${storageKey}-positions`, JSON.stringify(positions));
+      saveLayout.mutate({ page: storageKey, positions });
     }
-  }, [positions, storageKey]);
+  }, [positions, storageKey, saveLayout]);
 
   const registerModule = (id: string, defaultSpan = { col: 1, row: 1 }) => {
     setPositions(prev => {
