@@ -59,14 +59,7 @@ export default function Agents() {
           </div>
         </header>
 
-        <div className="space-y-6">
-          {/* Teams Grid */}
-          <ModuleCard 
-            title="Teams" 
-            icon={<Users className="w-4 h-4" />}
-            isEditable={isEditMode}
-          >
-            <div className="mb-4 relative">
+<div className="mb-4 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
               <input
                 type="text"
@@ -80,6 +73,15 @@ export default function Agents() {
                 }}
               />
             </div>
+            
+        <div className="space-y-6">
+          {/* Teams Grid */}
+          <ModuleCard 
+            title="Teams" 
+            icon={<Users className="w-4 h-4" />}
+            isEditable={isEditMode}
+          >
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredAgents.map((agent) => {
                 const agentCount = (agent as { agentCount?: number }).agentCount ?? 1;
@@ -106,7 +108,7 @@ export default function Agents() {
                     {/* Team Portrait */}
                     <div className="shrink-0">
                       <TeamPortrait 
-                        color={agent.avatarColor || 'var(--color-primary)'}
+                        color={'var(--color-primary)'}
                         agentCount={agentCount}
                         size="md"
                       />

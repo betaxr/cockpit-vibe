@@ -3,8 +3,8 @@ import KPICard from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
 import PageContainer from "@/components/PageContainer";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Users, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { Calendar, Users, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
 type WeekEntry = {
   id: string;
@@ -50,12 +50,25 @@ function WeekView({ weekData }: { weekData: Array<{ day: string; dayIndex: numbe
 export default function Wochenplan() {
   const [groupMode, setGroupMode] = useState<'team' | 'workplace'>('team');
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: stats } = trpc.stats.global.useQuery({ range: 'week' });
   const { data: weekSchedule = [] } = trpc.schedule.week.useQuery({
     scope: groupMode === 'workplace' ? 'workplace' : 'team',
     range: 'week',
   });
+
+  const filteredWeek = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    if (!q) return weekSchedule;
+    return weekSchedule.map(day => ({
+      ...day,
+      entries: day.entries.filter(entry =>
+        entry.title.toLowerCase().includes(q) ||
+        (entry.agentName || "").toLowerCase().includes(q)
+      ),
+    }));
+  }, [searchQuery, weekSchedule]);
 
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(selectedDate);
@@ -131,7 +144,22 @@ export default function Wochenplan() {
           </div>
         </ModuleCard>
 
-        <WeekView weekData={weekSchedule as any} />
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+          <input
+            type="text"
+            placeholder="Suche in Wochenplan (Titel oder Agent)..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder:text-white/40 focus:outline-none"
+            style={{
+              background: "color-mix(in oklch, var(--color-card) 85%, transparent)",
+              border: "1px solid color-mix(in oklch, var(--color-border) 80%, transparent)",
+            }}
+          />
+        </div>
+
+        <WeekView weekData={filteredWeek as any} />
       </PageContainer>
     </DashboardLayout>
   );
