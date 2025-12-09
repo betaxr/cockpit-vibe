@@ -182,7 +182,7 @@ function DashboardLayoutContent({
         >
           <SidebarHeader className="h-16 justify-center bg-transparent">
             <div className="flex items-center gap-2 px-2 transition-all w-full">
-              <span className="font-semibold tracking-tight truncate">Navigation</span>
+              <span className="font-semibold tracking-tight truncate">Views</span>
             </div>
           </SidebarHeader>
 
