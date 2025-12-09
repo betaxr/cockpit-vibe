@@ -11,7 +11,7 @@ export default function Agents() {
   const [, setLocation] = useLocation();
   const { isEditMode } = useEditMode();
   
-  const { data: stats } = trpc.stats.global.useQuery();
+  const { data: stats } = trpc.stats.global.useQuery({ range: "day" });
   const { data: agents = [] } = trpc.agents.list.useQuery();
 
   return (
@@ -32,25 +32,22 @@ export default function Agents() {
           {/* KPI Cards Row - Bundled Wertschöpfung + Zeitersparnis */}
           <div className="flex gap-3">
             <KPICard
-              value={stats?.totalProcesses || 0}
+              value={stats?.runningProcesses || 0}
               label="Prozesse"
-              icon={<Zap className="w-4 h-4" />}
               size="sm"
             />
             {/* Bundled KPI: Wertschöpfung + Zeitersparnis */}
             <KPICard
-              value={stats?.totalValue || 0}
-              suffix="€"
-              label="Wertschöpfung"
-              secondaryValue={stats?.totalTimeSaved || 0}
-              secondarySuffix="h"
-              secondaryLabel="Zeitersparnis"
+              value={stats?.activeAgents || 0}
+              label="Aktive Agenten"
+              secondaryValue={agents.length}
+              secondarySuffix="Gesamt"
+              secondaryLabel="Agenten"
             />
             <KPICard
-              value={stats?.avgReliability || 0}
+              value={Math.round((stats?.utilizationAgents ?? 0) * 100)}
               suffix="%"
               label="Auslastung"
-              icon={<TrendingUp className="w-4 h-4" />}
               size="sm"
             />
           </div>
@@ -140,8 +137,8 @@ export default function Agents() {
             <ModuleCard isEditable={isEditMode}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white/40 text-xs">Gesamt Agenten</p>
-                  <p className="text-xl font-semibold text-white mt-0.5">{stats?.totalAgents || 0}</p>
+                    <p className="text-white/40 text-xs">Gesamt Agenten</p>
+                    <p className="text-xl font-semibold text-white mt-0.5">{agents.length}</p>
                 </div>
                 <div
                   className="p-2.5 rounded-xl"
@@ -155,9 +152,9 @@ export default function Agents() {
             <ModuleCard isEditable={isEditMode}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white/40 text-xs">Laufende Prozesse</p>
-                  <p className="text-xl font-semibold text-white mt-0.5">{stats?.runningProcesses || 0}</p>
-                </div>
+                    <p className="text-white/40 text-xs">Laufende Prozesse</p>
+                    <p className="text-xl font-semibold text-white mt-0.5">{stats?.runningProcesses || 0}</p>
+                  </div>
                 <div className="p-2.5 rounded-xl bg-blue-500/10">
                   <Zap className="w-5 h-5 text-blue-400/70" />
                 </div>
