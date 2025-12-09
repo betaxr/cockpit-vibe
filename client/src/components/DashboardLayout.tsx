@@ -17,16 +17,14 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { Bot, Calendar, Brain, Workflow, Monitor, LogOut, PanelLeft, GripVertical } from "lucide-react";
+import { Bot, Calendar, Brain, Workflow, Monitor, LogOut } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState, createContext, useContext } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
-import { Switch } from "./ui/switch";
 import AnimatedBackground from "./AnimatedBackground";
 
 // Global edit mode context
@@ -138,19 +136,11 @@ function DashboardLayoutContent({
 }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
-  const { state, toggleSidebar } = useSidebar();
-  const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
   const { isEditMode, setEditMode } = useEditMode();
-
-  useEffect(() => {
-    if (isCollapsed) {
-      setIsResizing(false);
-    }
-  }, [isCollapsed]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -186,26 +176,13 @@ function DashboardLayoutContent({
     <>
       <div className="relative" ref={sidebarRef}>
         <Sidebar
-          collapsible="icon"
-          className="border-r-0"
+          collapsible="offcanvas"
+          className="border-r-0 bg-transparent backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur"
           disableTransition={isResizing}
         >
-          <SidebarHeader className="h-16 justify-center">
-            <div className="flex items-center gap-3 px-2 transition-all w-full">
-              <button
-                onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
-                aria-label="Toggle navigation"
-              >
-                <PanelLeft className="h-4 w-4 text-muted-foreground" />
-              </button>
-              {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-semibold tracking-tight truncate">
-                    Navigation
-                  </span>
-                </div>
-              ) : null}
+          <SidebarHeader className="h-16 justify-center bg-transparent">
+            <div className="flex items-center gap-2 px-2 transition-all w-full">
+              <span className="font-semibold tracking-tight truncate">Navigation</span>
             </div>
           </SidebarHeader>
 
@@ -231,29 +208,6 @@ function DashboardLayoutContent({
                 );
               })}
             </SidebarMenu>
-            
-            {/* Edit Mode Toggle */}
-            {!isCollapsed && (
-              <div
-                className="px-4 py-4 mt-auto border-t"
-                style={{ borderColor: "color-mix(in oklch, var(--color-border) 40%, transparent)" }}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-sm text-white/60">
-                    <GripVertical className="h-4 w-4 opacity-50" />
-                    <span>Modular View Edit</span>
-                  </div>
-                  <Switch
-                    checked={isEditMode}
-                    onCheckedChange={setEditMode}
-                    className="data-[state=checked]:bg-[color:var(--color-primary)]"
-                  />
-                </div>
-                {isEditMode && (
-                  <p className="text-xs text-white/40 mt-2">Module per Drag & Drop verschieben</p>
-                )}
-              </div>
-            )}
           </SidebarContent>
 
           <SidebarFooter className="p-3">
@@ -288,9 +242,8 @@ function DashboardLayoutContent({
           </SidebarFooter>
         </Sidebar>
         <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors ${isCollapsed ? "hidden" : ""}`}
+          className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors"
           onMouseDown={() => {
-            if (isCollapsed) return;
             setIsResizing(true);
           }}
           style={{ zIndex: 50 }}
