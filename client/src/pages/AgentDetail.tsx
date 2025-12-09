@@ -160,15 +160,15 @@ export default function AgentDetail() {
   const { isEditMode } = useEditMode();
   const [selectedDate, setSelectedDate] = useState(new Date());
   
-  const agentId = parseInt(params.id || "0");
+  const agentId = params.id ?? "";
   
-  const { data: agent, isLoading } = trpc.agents.getById.useQuery({ id: agentId }, { enabled: agentId > 0 });
-  const { data: workspaces = [] } = trpc.agents.workspaces.useQuery({ agentId }, { enabled: agentId > 0 });
+  const { data: agent, isLoading } = trpc.agents.getById.useQuery({ id: agentId }, { enabled: Boolean(agentId) });
+  const { data: workspaces = [] } = trpc.agents.workspaces.useQuery({ agentId }, { enabled: Boolean(agentId) });
   const { data: schedule = [] } = trpc.agents.schedule.useQuery({ 
     agentId, 
     date: selectedDate.toISOString().split('T')[0] 
-  }, { enabled: agentId > 0 });
-  const { data: processes = [] } = trpc.agents.processes.useQuery({ agentId }, { enabled: agentId > 0 });
+  }, { enabled: Boolean(agentId) });
+  const { data: processes = [] } = trpc.agents.processes.useQuery({ agentId }, { enabled: Boolean(agentId) });
 
   // Calculate agent stats
   const agentStats = useMemo(() => {
@@ -265,7 +265,7 @@ export default function AgentDetail() {
               <div className="flex-1 space-y-6 py-2">
                 <div>
                   <h2 className="text-xl font-semibold text-white">{agent.team?.name || "Team Sales"}</h2>
-                  <p className="text-sm text-white/50 mt-1 font-mono">Team-ID: {agent.team?.teamId || agent.agentId}</p>
+                  <p className="text-sm text-white/50 mt-1 font-mono">Team-ID: {agent.team?.id || agent.team?.externalId || agent.agentId}</p>
                 </div>
                 
                 <div className="space-y-1">
@@ -276,9 +276,9 @@ export default function AgentDetail() {
                 <div className="space-y-3 text-sm pt-2">
                   <p className="text-white/50 font-medium">Group / Context</p>
                   <div className="space-y-1.5">
-                    <p className="text-white/80">Region: <span className="text-white/60">{agent.team?.region || "Marketing EUW"}</span></p>
-                    <p className="text-white/80">Customer type: <span className="text-white/60">{agent.team?.customerType || "Sales, Marketing"}</span></p>
-                    <p className="text-white/80">Project: <span className="text-white/60">{agent.team?.project || "Social Media Management"}</span></p>
+                    <p className="text-white/80">Region: <span className="text-white/60">Marketing EUW</span></p>
+                    <p className="text-white/80">Customer type: <span className="text-white/60">Sales, Marketing</span></p>
+                    <p className="text-white/80">Project: <span className="text-white/60">Social Media Management</span></p>
                   </div>
                 </div>
                 
@@ -317,7 +317,7 @@ export default function AgentDetail() {
                           key={ws.id}
                           className="flex items-center gap-3 px-4 py-2.5 rounded-xl border"
                           style={
-                            ws.status === 'online'
+                            ws.status === 'available'
                               ? {
                                   background: "color-mix(in oklch, var(--color-card) 60%, transparent)",
                                   borderColor: "color-mix(in oklch, var(--color-border) 60%, transparent)",
@@ -325,7 +325,7 @@ export default function AgentDetail() {
                               : { background: "color-mix(in oklch, var(--color-card) 50%, transparent)", borderColor: "color-mix(in oklch, var(--color-border) 50%, transparent)" }
                           }
                         >
-                          <div className={`w-2 h-2 rounded-full ${ws.status === 'online' ? 'bg-green-500' : 'bg-gray-500'}`} />
+                          <div className={`w-2 h-2 rounded-full ${ws.status === 'available' ? 'bg-green-500' : 'bg-gray-500'}`} />
                           <Monitor className="w-4 h-4 text-white/40" />
                           <span className="text-sm text-white/80">{ws.name}</span>
                         </div>

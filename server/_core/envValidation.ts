@@ -53,10 +53,10 @@ export function validateEnv(): ValidatedEnv {
     const errorMessage = `Environment validation failed:\n${errors.join("\n")}`;
     
     if (process.env.NODE_ENV === "production") {
-      logger.error("Environment validation failed", { errors });
+      logger.error({ errors }, "Environment validation failed");
       throw new Error(errorMessage);
     } else {
-      logger.warn("Environment validation warnings (non-fatal in development)", { errors });
+      logger.warn({ errors }, "Environment validation warnings (non-fatal in development)");
     }
   }
   
@@ -89,5 +89,5 @@ export function printEnvSummary() {
     OAUTH_CONFIGURED: process.env.VITE_APP_ID ? "yes" : "no",
   };
   
-  logger.info("Environment Summary", summary);
+  logger.info({ summary }, "Environment Summary");
 }

@@ -1,6 +1,6 @@
 import { AXIOS_TIMEOUT_MS, COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { ForbiddenError } from "@shared/_core/errors";
-import axios, { type AxiosInstance, AxiosError } from "axios";
+import axios, { type AxiosInstance, AxiosError, type AxiosRequestConfig } from "axios";
 import { parse as parseCookieHeader } from "cookie";
 import type { Request } from "express";
 import { SignJWT, jwtVerify } from "jose";
@@ -113,7 +113,7 @@ const createOAuthHttpClient = (): AxiosInstance => {
       return response;
     },
     async (error: AxiosError) => {
-      const config = error.config || {};
+      const config = (error.config || {}) as AxiosRequestConfig;
       const attempt = ((config as any).__retryCount ?? 0) + 1;
       const shouldRetry =
         attempt <= 2 &&

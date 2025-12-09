@@ -1,4 +1,4 @@
-import { Collection } from "mongodb";
+import { Collection, Document } from "mongodb";
 import { getMongoDb } from "../_core/mongo";
 import { THEME_COLORS } from "../../shared/themeColors";
 import { syncAgents, syncProcesses, syncSchedules, syncTeams, syncWorkspaces } from "./collectorSync";
@@ -8,6 +8,7 @@ type AgentDoc = {
   externalId: string;
   name: string;
   teamId?: string | number | null;
+  agentId?: string | number;
   hoursPerDay?: number;
   status?: "active" | "idle" | "offline" | "busy" | "planned";
   avatarColor?: string | null;
@@ -61,13 +62,13 @@ type ScheduleDoc = {
   processId?: string | number;
 };
 
-async function getCollection<T>(name: string): Promise<Collection<T> | null> {
+async function getCollection<T extends Document>(name: string): Promise<Collection<T> | null> {
   const db = await getMongoDb();
   if (!db) return null;
   return db.collection<T>(name);
 }
 
-async function ensureSynced<T>(name: string, syncFn: (col: Collection<T>) => Promise<void>) {
+async function ensureSynced<T extends Document>(name: string, syncFn: (col: Collection<T>) => Promise<void>) {
   const col = await getCollection<T>(name);
   if (!col) return;
   await syncFn(col);

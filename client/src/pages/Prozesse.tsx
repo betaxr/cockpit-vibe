@@ -3,19 +3,39 @@ import KPICard from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
 import PageContainer from "@/components/PageContainer";
 import { trpc } from "@/lib/trpc";
-import { Workflow, Play, CheckCircle, XCircle, Clock, TrendingUp, Users, Zap } from "lucide-react";
+import { Workflow, Play, CheckCircle, XCircle, Clock, TrendingUp, Users, Zap, Search } from "lucide-react";
+import { useState } from "react";
 
 export default function Prozesse() {
   const { isEditMode } = useEditMode();
+  const [searchQuery, setSearchQuery] = useState("");
   
   const { data: processes = [] } = trpc.processes.list.useQuery();
   const { data: runningProcesses = [] } = trpc.processes.running.useQuery();
   const { data: stats } = trpc.stats.global.useQuery();
+  const filteredProcesses = processes.filter(p => {
+    const q = searchQuery.toLowerCase();
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      (p.description || "").toLowerCase().includes(q)
+    );
+  });
+  const filteredRunning = runningProcesses.filter(entry => {
+    const q = searchQuery.toLowerCase();
+    return (
+      entry.processName.toLowerCase().includes(q) ||
+      entry.agentName.toLowerCase().includes(q)
+    );
+  });
   
-  const getStatusIcon = (status: string) => {
-    switch (status) {
+  const getStatusIcon = (lifecycle: string) => {
+    switch (lifecycle) {
       case 'running': return <Play className="w-4 h-4 text-[color:var(--color-primary)]" />;
-      case 'idle': return <Clock className="w-4 h-4 text-white/40" />;
+      case 'planned':
+      case 'scheduled': return <Clock className="w-4 h-4 text-white/40" />;
+      case 'failed':
+      case 'canceled': return <XCircle className="w-4 h-4 text-red-400" />;
       default: return <CheckCircle className="w-4 h-4 text-green-500" />;
     }
   };
@@ -80,15 +100,31 @@ export default function Prozesse() {
           </div>
         </div>
 
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+          <input
+            type="text"
+            placeholder="Suche in Prozesse..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder:text-white/40 focus:outline-none"
+            style={{
+              background: "color-mix(in oklch, var(--color-card) 85%, transparent)",
+              border: "1px solid color-mix(in oklch, var(--color-border) 80%, transparent)",
+            }}
+          />
+        </div>
+
         {/* Currently Running */}
-        {runningProcesses.length > 0 && (
+        {filteredRunning.length > 0 && (
           <ModuleCard 
             title="Aktuell laufend" 
             icon={<Play className="w-4 h-4 text-[color:var(--color-primary)]" />}
             isEditable={isEditMode}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {runningProcesses.map((entry, i) => (
+              {filteredRunning.map((entry, i) => (
                 <div 
                   key={i}
                   className="flex items-center gap-4 p-4 rounded-xl border"
@@ -123,7 +159,7 @@ export default function Prozesse() {
           isEditable={isEditMode}
         >
           <div className="space-y-3">
-            {processes.map((process) => (
+            {filteredProcesses.map((process) => (
               <div 
                 key={process.id}
                 className="p-4 rounded-xl transition-all"
@@ -136,7 +172,7 @@ export default function Prozesse() {
                 <div className="flex items-start gap-4">
                   {/* Status Icon */}
                   <div className="shrink-0 mt-1">
-                    {getStatusIcon(process.status)}
+                        {getStatusIcon((process as { lifecycle?: string; status?: string }).status ?? process.lifecycle ?? "completed")}
                   </div>
                   
                   {/* Process Info */}

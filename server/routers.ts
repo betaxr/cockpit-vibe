@@ -83,7 +83,7 @@ export const appRouter = router({
         name: testUser.name,
         email: testUser.email,
         loginMethod: 'test',
-        role: testUser.role,
+        role: testUser.role as any,
         lastSignedIn: new Date(),
       });
 
@@ -157,7 +157,7 @@ export const appRouter = router({
           processId: p.processId,
           description: p.description,
           category: p.category,
-          status: p.status ?? 'completed',
+          status: p.lifecycle ?? 'completed',
           valueGenerated: p.totalValue,
           timeSavedMinutes: p.totalTimeSaved,
           scheduleCount: p.scheduleCount,

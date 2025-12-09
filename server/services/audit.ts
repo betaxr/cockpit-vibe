@@ -23,7 +23,7 @@ export async function logAudit(entry: Omit<AuditEntry, "timestamp">) {
     if (col) {
       await col.insertOne(doc);
     } else {
-      logger.info("Audit (no DB)", doc);
+      logger.info({ audit: doc }, "Audit (no DB)");
     }
   } catch (err) {
     logger.error({ err, action: entry.action }, "Failed to write audit log");

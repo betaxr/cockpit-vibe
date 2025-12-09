@@ -1,4 +1,4 @@
-import { Collection, Document } from "mongodb";
+import { Collection, Document, Filter, UpdateFilter } from "mongodb";
 import { fetchCollector, isCollectorEnabled } from "../_core/collector";
 import { THEME_COLORS } from "../../shared/themeColors";
 
@@ -8,8 +8,8 @@ async function upsertMany<T extends Document>(col: Collection<T>, docs: T[], idF
   if (!docs.length) return;
   const ops = docs.map(doc => ({
     updateOne: {
-      filter: { tenantId: defaultTenant, [idField]: doc[idField] },
-      update: { $set: { ...doc, tenantId: defaultTenant } },
+      filter: { tenantId: defaultTenant, [idField]: doc[idField] } as unknown as Filter<T>,
+      update: { $set: { ...(doc as T), tenantId: defaultTenant } } as UpdateFilter<T>,
       upsert: true,
     },
   }));

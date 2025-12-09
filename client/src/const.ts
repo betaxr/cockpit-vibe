@@ -105,7 +105,14 @@ function sha256(message: string): Uint8Array {
       w[t] = (w[t - 16] + s0 + w[t - 7] + s1) >>> 0;
     }
 
-    let [a, b, c, d, e, f, g, hh] = h;
+    let a = h[0];
+    let b = h[1];
+    let c = h[2];
+    let d = h[3];
+    let e = h[4];
+    let f = h[5];
+    let g = h[6];
+    let hh = h[7];
     for (let t = 0; t < 64; t++) {
       const S1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
       const ch = (e & f) ^ (~e & g);

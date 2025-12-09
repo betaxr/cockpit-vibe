@@ -7,6 +7,7 @@ interface KPICardProps {
   icon?: ReactNode;
   variant?: "default" | "compact" | "secondary";
   size?: "sm" | "md" | "lg";
+  tooltip?: string;
   // For bundled KPIs (e.g., Wertschöpfung + Zeitersparnis)
   secondaryValue?: string | number;
   secondarySuffix?: string;
@@ -21,6 +22,7 @@ export default function KPICard({
   icon,
   variant = "default",
   size = "md",
+  tooltip,
   secondaryValue,
   secondarySuffix,
   secondaryLabel,
@@ -58,6 +60,7 @@ export default function KPICard({
   
   return (
     <div
+      title={tooltip}
       className={`
         relative overflow-hidden
         ${isSecondary 

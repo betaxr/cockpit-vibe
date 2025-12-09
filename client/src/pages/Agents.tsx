@@ -4,15 +4,20 @@ import ModuleCard from "@/components/ModuleCard";
 import PageContainer from "@/components/PageContainer";
 import { TeamPortrait } from "@/components/TeamPortrait";
 import { trpc } from "@/lib/trpc";
-import { Zap, Clock, TrendingUp, ChevronRight, Users } from "lucide-react";
+import { Zap, Clock, TrendingUp, ChevronRight, Users, Search } from "lucide-react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 
 export default function Agents() {
   const [, setLocation] = useLocation();
   const { isEditMode } = useEditMode();
+  const [searchQuery, setSearchQuery] = useState("");
   
   const { data: stats } = trpc.stats.global.useQuery({ range: "day" });
   const { data: agents = [] } = trpc.agents.list.useQuery();
+  const filteredAgents = agents.filter(agent =>
+    agent.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <DashboardLayout>
@@ -61,8 +66,23 @@ export default function Agents() {
             icon={<Users className="w-4 h-4" />}
             isEditable={isEditMode}
           >
+            <div className="mb-4 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+              <input
+                type="text"
+                placeholder="Suche in Teams..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder:text-white/40 focus:outline-none"
+                style={{
+                  background: "color-mix(in oklch, var(--color-card) 85%, transparent)",
+                  border: "1px solid color-mix(in oklch, var(--color-border) 80%, transparent)",
+                }}
+              />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {agents.map((agent) => {
+              {filteredAgents.map((agent) => {
+                const agentCount = (agent as { agentCount?: number }).agentCount ?? 1;
                 // Calculate utilization based on status
                 const utilization = agent.status === 'active' ? 85 : 
                                     agent.status === 'busy' ? 95 : 30;
@@ -87,7 +107,7 @@ export default function Agents() {
                     <div className="shrink-0">
                       <TeamPortrait 
                         color={agent.avatarColor || 'var(--color-primary)'}
-                        agentCount={agent.agentCount || 1}
+                        agentCount={agentCount}
                         size="md"
                       />
                     </div>
@@ -96,10 +116,10 @@ export default function Agents() {
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base font-medium text-white">{agent.name}</h3>
                       <p className="text-xs text-white/40 mt-0.5">
-                        {agent.agentCount || 1} {(agent.agentCount || 1) === 1 ? 'Agent' : 'Agenten'}
+                        {agentCount} {agentCount === 1 ? 'Agent' : 'Agenten'}
                       </p>
                       <p className="text-xs text-white/55 mt-1" title="Tageskapazität = Agenten * 24h">
-                        Tageskapazität: {(agent.agentCount || 1) * 24}h
+                        Tageskapazität: {agentCount * 24}h
                       </p>
                       
                       <div className="flex items-center gap-3 text-xs mt-2">

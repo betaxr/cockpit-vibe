@@ -1,4 +1,5 @@
 import { getMongoDb, isMongoConfigured } from "../_core/mongo";
+import type { Document, OptionalUnlessRequiredId } from "mongodb";
 import { logger } from "../_core/ops";
 import { seedAgents, seedProcesses, seedScheduleEntries, seedTeams, seedWorkspaces } from "../seedData";
 
@@ -10,7 +11,7 @@ function normalizeWorkspaceStatus(status: string | undefined) {
   return status ?? "available";
 }
 
-async function seedCollectionIfEmpty<T>(name: string, docs: T[]) {
+async function seedCollectionIfEmpty<T extends Document>(name: string, docs: Array<OptionalUnlessRequiredId<T>>) {
   const db = await getMongoDb();
   if (!db) {
     logger.warn("[MongoSeed] MongoDB not available, skip seeding");

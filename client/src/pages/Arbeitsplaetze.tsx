@@ -3,21 +3,33 @@ import KPICard from "@/components/KPICard";
 import ModuleCard from "@/components/ModuleCard";
 import PageContainer from "@/components/PageContainer";
 import { trpc } from "@/lib/trpc";
-import { Monitor, Wifi, WifiOff, MapPin, User, Server, Cloud } from "lucide-react";
+import { Monitor, Wifi, WifiOff, MapPin, User, Server, Cloud, Search } from "lucide-react";
+import { useState } from "react";
 
 export default function Arbeitsplaetze() {
   const { isEditMode } = useEditMode();
+  const [searchQuery, setSearchQuery] = useState("");
   
   const { data: workspaces = [] } = trpc.workspaces.list.useQuery();
   
-  const onlineCount = workspaces.filter(w => w.status === 'online').length;
+  const onlineCount = workspaces.filter(w => w.status === 'available').length;
   const offlineCount = workspaces.filter(w => w.status === 'offline').length;
+  const filteredWorkspaces = workspaces.filter(ws => {
+    const query = searchQuery.toLowerCase();
+    return (
+      ws.name.toLowerCase().includes(query) ||
+      ws.workspaceId.toLowerCase().includes(query) ||
+      (ws.location || "").toLowerCase().includes(query)
+    );
+  });
   
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'online': return 'bg-green-500';
-      case 'offline': return 'bg-gray-500';
+      case 'available': return 'bg-green-500';
+      case 'busy': return 'bg-orange-500';
+      case 'idle': return 'bg-blue-400';
       case 'maintenance': return 'bg-yellow-500';
+      case 'offline': return 'bg-gray-500';
       default: return 'bg-gray-500';
     }
   };
@@ -69,9 +81,24 @@ export default function Arbeitsplaetze() {
           </div>
         </div>
 
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+          <input
+            type="text"
+            placeholder="Suche in Arbeitsplätzen..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder:text-white/40 focus:outline-none"
+            style={{
+              background: "color-mix(in oklch, var(--color-card) 85%, transparent)",
+              border: "1px solid color-mix(in oklch, var(--color-border) 80%, transparent)",
+            }}
+          />
+        </div>
+
         {/* Workspaces Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {workspaces.map((workspace) => (
+          {filteredWorkspaces.map((workspace) => (
           <ModuleCard 
             key={workspace.id}
             isEditable={isEditMode}
@@ -93,12 +120,12 @@ export default function Arbeitsplaetze() {
                   </div>
                   <div className={`w-3 h-3 rounded-full ${getStatusColor(workspace.status)}`} />
                 </div>
-                
+
                 {/* Details */}
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-white/50 flex items-center gap-2">
-                      {workspace.status === 'online' ? (
+                      {workspace.status === 'available' ? (
                         <Wifi className="w-4 h-4" />
                       ) : (
                         <WifiOff className="w-4 h-4" />
@@ -106,9 +133,9 @@ export default function Arbeitsplaetze() {
                       Status
                     </span>
                     <span className={`font-medium ${
-                      workspace.status === 'online' ? 'text-green-400' : 'text-white/60'
+                      workspace.status === 'available' ? 'text-green-400' : 'text-white/60'
                     }`}>
-                      {workspace.status === 'online' ? 'Online' : 'Offline'}
+                      {workspace.status === 'available' ? 'Online' : 'Offline'}
                     </span>
                   </div>
                   

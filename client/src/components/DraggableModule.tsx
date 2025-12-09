@@ -1,5 +1,6 @@
 import { GripVertical } from "lucide-react";
 import { useState, useRef, useEffect, ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 interface Position {
   x: number;

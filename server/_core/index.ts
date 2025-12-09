@@ -36,7 +36,7 @@ async function startServer() {
   validateEnv();
   const readiness = checkProductionReadiness();
   if (!readiness.ready) {
-    logger.warn("Production readiness check failed", { missing: readiness.missing });
+    logger.warn({ missing: readiness.missing }, "Production readiness check failed");
   }
 
   // Ensure demo data exists when Mongo is empty
