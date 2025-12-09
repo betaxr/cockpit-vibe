@@ -180,12 +180,21 @@ export async function fetchScheduleEntries(tenantId: string) {
   }));
 }
 
-export async function fetchRunningProcesses(tenantId: string) {
+export async function fetchRunningProcesses(tenantId: string, from?: Date, to?: Date) {
   const processes = await fetchProcesses(tenantId);
   const schedule = await fetchScheduleEntries(tenantId);
-  const currentHour = new Date().getHours();
+  const now = new Date();
+  const windowStart = from ?? new Date(now.setHours(0, 0, 0, 0));
+  const windowEnd = to ?? new Date(now.setHours(23, 59, 59, 999));
+
   return schedule
-    .filter(entry => entry.startHour <= currentHour && entry.endHour > currentHour)
+    .filter(entry => {
+      const entryStart = new Date(now);
+      entryStart.setHours(entry.startHour, 0, 0, 0);
+      const entryEnd = new Date(now);
+      entryEnd.setHours(entry.endHour, 0, 0, 0);
+      return entryStart <= windowEnd && entryEnd >= windowStart;
+    })
     .map(entry => {
       const agent = processes.find(p => p.agent?.id === entry.agentId)?.agent;
       const process = processes.find(p => p.id === entry.processId);
@@ -203,12 +212,12 @@ export async function fetchRunningProcesses(tenantId: string) {
     });
 }
 
-export async function fetchGlobalStats(tenantId: string) {
+export async function fetchGlobalStats(tenantId: string, from?: Date, to?: Date) {
   const agents = await fetchAgents(tenantId);
   const processes = await fetchProcesses(tenantId);
   const totalAgents = agents.filter(a => ["active", "busy", "idle", "planned"].includes(a.status ?? "active")).length;
   const busyAgents = agents.filter(a => a.status === "busy").length;
-  const runningProcesses = (await fetchRunningProcesses(tenantId)).length;
+  const runningProcesses = (await fetchRunningProcesses(tenantId, from, to)).length;
   return {
     activeAgents: totalAgents,
     runningProcesses,
