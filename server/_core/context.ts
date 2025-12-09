@@ -36,11 +36,6 @@ export async function createContext(
 ): Promise<TrpcContext> {
   let user: User | null = null;
   const headerTenant = (opts.req.headers["x-tenant-id"] || opts.req.headers["x-tenant"] || "") as string;
-  const tenantId = headerTenant || process.env.TENANT_ID;
-
-  if (!tenantId) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "tenantId required" });
-  }
 
   try {
     const authService = await getAuthService();
@@ -53,6 +48,11 @@ export async function createContext(
     } else {
       user = null;
     }
+  }
+
+  const tenantId = headerTenant || user?.tenantId || process.env.TENANT_ID;
+  if (!tenantId) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "tenantId required" });
   }
 
   return {
