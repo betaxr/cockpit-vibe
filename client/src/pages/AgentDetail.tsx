@@ -197,7 +197,7 @@ export default function AgentDetail() {
           <p className="text-white/50">Agent nicht gefunden</p>
           <button 
             onClick={() => setLocation("/")}
-            className="mt-4 text-[oklch(0.7_0.18_50)] hover:underline"
+            className="mt-4 text-[oklch(0.65_0.18_45)] hover:underline"
           >
             Zurück zur Übersicht
           </button>
@@ -264,8 +264,8 @@ export default function AgentDetail() {
                 </div>
                 
                 <div className="space-y-1">
-                  <p className="text-[oklch(0.7_0.18_50)] font-medium">1 Agent /</p>
-                  <p className="text-[oklch(0.7_0.18_50)] font-medium">{agent.hoursPerDay} Stunden pro Tag</p>
+                  <p className="text-[oklch(0.65_0.18_45)] font-medium">1 Agent /</p>
+                  <p className="text-[oklch(0.65_0.18_45)] font-medium">{agent.hoursPerDay} Stunden pro Tag</p>
                 </div>
                 
                 <div className="space-y-3 text-sm pt-2">
@@ -360,7 +360,7 @@ export default function AgentDetail() {
             <ModuleCard isEditable={isEditMode}>
               <div className="text-center py-10">
                 <h3 className="text-lg font-semibold text-white mb-3">TOP Skills of the Month</h3>
-                <p className="text-[oklch(0.7_0.18_50)] text-sm">coming soon</p>
+                <p className="text-[oklch(0.65_0.18_45)] text-sm">coming soon</p>
               </div>
             </ModuleCard>
           </div>

@@ -66,7 +66,7 @@ function DayView({
           <div 
             key={hour} 
             className={`h-12 flex items-start justify-end pr-3 font-mono ${
-              hour === currentHour ? 'text-[oklch(0.7_0.18_50)]' : ''
+              hour === currentHour ? 'text-[oklch(0.65_0.18_45)]' : ''
             }`}
           >
             {hour.toString().padStart(2, '0')}:00
@@ -90,10 +90,10 @@ function DayView({
         
         {/* Current time indicator */}
         <div 
-          className="absolute left-0 right-0 h-0.5 bg-[oklch(0.7_0.18_50)] z-10"
+          className="absolute left-0 right-0 h-0.5 bg-[oklch(0.65_0.18_45)] z-10"
           style={{ top: `${currentHour * 48 + (new Date().getMinutes() / 60) * 48}px` }}
         >
-          <div className="absolute -left-2 -top-1.5 w-3 h-3 rounded-full bg-[oklch(0.7_0.18_50)]" />
+          <div className="absolute -left-2 -top-1.5 w-3 h-3 rounded-full bg-[oklch(0.65_0.18_45)]" />
         </div>
         
         {/* Entries */}

@@ -19,7 +19,6 @@ export default function Login() {
       if (result.success) {
         toast.success("Login erfolgreich!");
         setLocation("/");
-        // Force reload to update auth state
         window.location.reload();
       } else {
         toast.error(result.message || "Login fehlgeschlagen");
@@ -33,7 +32,6 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
     try {
       await testLoginMutation.mutateAsync({ username, password });
     } finally {
@@ -43,21 +41,21 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      {/* Background effects */}
+      {/* Background effects - Orange/Gray */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[oklch(0.4_0.15_45/20%)] rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[oklch(0.35_0.12_50/15%)] rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[oklch(0.35_0.12_45/15%)] rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[oklch(0.25_0.08_45/10%)] rounded-full blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Login Card */}
-        <div className="bg-gradient-to-br from-[oklch(0.18_0.03_50/80%)] to-[oklch(0.12_0.02_50/70%)] backdrop-blur-xl border-2 border-[oklch(0.55_0.15_45/50%)] rounded-2xl p-8 shadow-[0_0_60px_oklch(0.4_0.12_45/15%)]">
+        {/* Login Card - Gray with Orange accent */}
+        <div className="bg-gradient-to-br from-[oklch(0.18_0_0/90%)] to-[oklch(0.12_0_0/85%)] backdrop-blur-xl border-2 border-[oklch(0.65_0.18_45/40%)] rounded-2xl p-8 shadow-[0_0_60px_oklch(0.5_0.12_45/10%)]">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[oklch(0.55_0.15_45/20%)] border border-[oklch(0.55_0.15_45/40%)] mb-4">
-              <Database className="w-8 h-8 text-[oklch(0.7_0.18_50)]" strokeWidth={1.5} />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[oklch(0.65_0.18_45/15%)] border border-[oklch(0.65_0.18_45/30%)] mb-4">
+              <Database className="w-8 h-8 text-[oklch(0.65_0.18_45)]" strokeWidth={1.5} />
             </div>
-            <h1 className="text-2xl font-bold text-white">Multi-DB Manager</h1>
+            <h1 className="text-2xl font-bold text-white">Cockpit Vibe</h1>
             <p className="text-white/50 mt-2">Melden Sie sich an, um fortzufahren</p>
           </div>
 
@@ -71,7 +69,7 @@ export default function Login() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="admin"
-                className="bg-[oklch(0.15_0.02_50/60%)] border-[oklch(0.5_0.12_45/40%)] text-white placeholder:text-white/30 focus:border-[oklch(0.6_0.15_45/60%)] focus:ring-[oklch(0.6_0.15_45/30%)]"
+                className="bg-[oklch(0.18_0_0/70%)] border-[oklch(0.40_0_0/50%)] text-white placeholder:text-white/30 focus:border-[oklch(0.65_0.18_45/60%)] focus:ring-[oklch(0.65_0.18_45/30%)]"
                 required
               />
             </div>
@@ -85,7 +83,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="bg-[oklch(0.15_0.02_50/60%)] border-[oklch(0.5_0.12_45/40%)] text-white placeholder:text-white/30 focus:border-[oklch(0.6_0.15_45/60%)] focus:ring-[oklch(0.6_0.15_45/30%)] pr-10"
+                  className="bg-[oklch(0.18_0_0/70%)] border-[oklch(0.40_0_0/50%)] text-white placeholder:text-white/30 focus:border-[oklch(0.65_0.18_45/60%)] focus:ring-[oklch(0.65_0.18_45/30%)] pr-10"
                   required
                 />
                 <button
@@ -101,7 +99,7 @@ export default function Login() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[oklch(0.55_0.15_45)] hover:bg-[oklch(0.6_0.17_45)] text-white border-0 h-11"
+              className="w-full bg-[oklch(0.65_0.18_45)] hover:bg-[oklch(0.70_0.20_45)] text-white border-0 h-11"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
@@ -118,11 +116,11 @@ export default function Login() {
           </form>
 
           {/* Test Credentials Info */}
-          <div className="mt-6 p-4 rounded-lg bg-[oklch(0.2_0.03_50/40%)] border border-[oklch(0.5_0.12_45/25%)]">
+          <div className="mt-6 p-4 rounded-lg bg-[oklch(0.22_0_0/50%)] border border-[oklch(0.35_0_0/40%)]">
             <p className="text-xs text-white/50 text-center">
               <span className="font-medium text-white/70">Test-Zugangsdaten:</span><br />
-              Benutzer: <code className="text-[oklch(0.7_0.15_45)]">admin</code> / 
-              Passwort: <code className="text-[oklch(0.7_0.15_45)]">admin</code>
+              Benutzer: <code className="text-[oklch(0.65_0.18_45)]">admin</code> / 
+              Passwort: <code className="text-[oklch(0.65_0.18_45)]">admin</code>
             </p>
           </div>
         </div>

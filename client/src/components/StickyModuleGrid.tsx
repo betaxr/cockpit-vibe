@@ -224,7 +224,7 @@ export function StickyModule({
 
       {/* Edit mode indicator */}
       {isEditMode && (
-        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[oklch(0.7_0.18_50)] animate-pulse" />
+        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[oklch(0.65_0.18_45)] animate-pulse" />
       )}
     </div>
   );

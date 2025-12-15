@@ -23,10 +23,10 @@ export default function Arbeitsplaetze() {
   
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'physical': return <Monitor className="w-6 h-6 text-[oklch(0.7_0.18_50)]" />;
+      case 'physical': return <Monitor className="w-6 h-6 text-[oklch(0.65_0.18_45)]" />;
       case 'virtual': return <Cloud className="w-6 h-6 text-blue-400" />;
       case 'server': return <Server className="w-6 h-6 text-purple-400" />;
-      default: return <Monitor className="w-6 h-6 text-[oklch(0.7_0.18_50)]" />;
+      default: return <Monitor className="w-6 h-6 text-[oklch(0.65_0.18_45)]" />;
     }
   };
   

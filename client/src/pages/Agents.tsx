@@ -99,12 +99,12 @@ export default function Agents() {
                         </div>
                         <div className={`flex items-center gap-1 ${
                           agent.status === 'active' ? 'text-green-400' :
-                          agent.status === 'busy' ? 'text-[oklch(0.7_0.18_50)]' :
+                          agent.status === 'busy' ? 'text-[oklch(0.65_0.18_45)]' :
                           'text-white/40'
                         }`}>
                           <div className={`w-1.5 h-1.5 rounded-full ${
                             agent.status === 'active' ? 'bg-green-500' :
-                            agent.status === 'busy' ? 'bg-[oklch(0.7_0.18_50)]' :
+                            agent.status === 'busy' ? 'bg-[oklch(0.65_0.18_45)]' :
                             'bg-gray-500'
                           }`} />
                           <span>{agent.status === 'active' ? 'Aktiv' : agent.status === 'busy' ? 'Beschäftigt' : 'Inaktiv'}</span>

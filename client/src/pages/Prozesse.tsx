@@ -13,7 +13,7 @@ export default function Prozesse() {
   
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'running': return <Play className="w-4 h-4 text-[oklch(0.7_0.18_50)]" />;
+      case 'running': return <Play className="w-4 h-4 text-[oklch(0.65_0.18_45)]" />;
       case 'idle': return <Clock className="w-4 h-4 text-white/40" />;
       default: return <CheckCircle className="w-4 h-4 text-green-500" />;
     }
@@ -84,7 +84,7 @@ export default function Prozesse() {
         {runningProcesses.length > 0 && (
           <ModuleCard 
             title="Aktuell laufend" 
-            icon={<Play className="w-4 h-4 text-[oklch(0.7_0.18_50)]" />}
+            icon={<Play className="w-4 h-4 text-[oklch(0.65_0.18_45)]" />}
             isEditable={isEditMode}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -176,7 +176,7 @@ export default function Prozesse() {
                   
                   {/* Value */}
                   <div className="text-right shrink-0">
-                    <div className="text-lg font-semibold text-[oklch(0.7_0.18_50)]">
+                    <div className="text-lg font-semibold text-[oklch(0.65_0.18_45)]">
                       {Math.round((process.totalValue || 0) / 100)}€
                     </div>
                     <div className="text-xs text-white/40">

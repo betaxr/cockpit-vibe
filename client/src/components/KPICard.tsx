@@ -62,7 +62,7 @@ export default function KPICard({
         relative overflow-hidden
         ${isSecondary 
           ? "bg-transparent border-0" 
-          : "bg-gradient-to-br from-[oklch(0.20_0.03_45)] to-[oklch(0.14_0.02_50)] border border-[oklch(0.55_0.15_45/40%)]"
+          : "bg-gradient-to-br from-[oklch(0.18_0_0)] to-[oklch(0.14_0_0)] border border-[oklch(0.55_0.15_45/40%)]"
         }
         rounded-xl
         ${s.padding} ${s.minWidth}
@@ -160,7 +160,7 @@ export function MultiKPICard({ items, className = "" }: MultiKPICardProps) {
     <div
       className={`
         relative overflow-hidden
-        bg-gradient-to-br from-[oklch(0.20_0.03_45)] to-[oklch(0.14_0.02_50)]
+        bg-gradient-to-br from-[oklch(0.18_0_0)] to-[oklch(0.14_0_0)]
         border border-[oklch(0.55_0.15_45/40%)]
         rounded-xl p-4
         transition-all duration-200
